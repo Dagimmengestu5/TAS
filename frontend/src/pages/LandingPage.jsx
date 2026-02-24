@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Clock, Filter, Briefcase, ChevronRight, CheckCircle, Users, Mail, ArrowRight, Zap, Globe, Shield, Building2, X, Star } from 'lucide-react';
+import { Search, MapPin, Clock, Filter, Briefcase, ChevronRight, CheckCircle, Users, Mail, ArrowRight, Zap, Globe, Shield, Building2, X, Star, Cpu, Activity, LogOut } from 'lucide-react';
 import api from '../api/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -13,11 +13,16 @@ const LandingPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const [locationFilter, setLocationFilter] = useState('all');
+    const [dateFilter, setDateFilter] = useState('all');
 
     const JOB_CATEGORIES = [
         'all', 'Health', 'Accounting', 'Pharmacy', 'IT',
         'Engineering', 'Finance', 'Marketing', 'HR', 'Legal'
     ];
+
+    const JOB_TYPES = ['all', 'Full-time', 'Freelance', 'Half-time'];
+    const DATE_OPTIONS = ['all', 'Today', 'Yesterday', 'Last Week', 'Last Month'];
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -34,15 +39,37 @@ const LandingPage = () => {
     }, []);
 
     const filteredJobs = jobs.filter(job => {
-        const req = job.requisition;
+        const req = job?.requisition || {};
+        const createdAt = new Date(job?.created_at || new Date());
+        const now = new Date();
+
         const matchesSearch = (req.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (req.department || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (req.category || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesType = typeFilter === 'all' || (typeFilter === 'internal' ? job.is_internal : job.is_external);
-        const matchesCategory = categoryFilter === 'all' || req.category === categoryFilter;
 
-        return matchesSearch && matchesType && matchesCategory;
+        const matchesType = typeFilter === 'all' ||
+            (typeFilter === 'Full-time' && !job?.is_internal) ||
+            (typeFilter === 'Freelance' && job?.is_external) ||
+            (typeFilter === 'Half-time' && job?.is_internal);
+
+        const matchesCategory = categoryFilter === 'all' || req.category === categoryFilter;
+        const matchesLocation = locationFilter === 'all' || req.location === locationFilter;
+
+        let matchesDate = true;
+        if (dateFilter !== 'all') {
+            const diffTime = Math.abs(now - createdAt);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (dateFilter === 'Today') matchesDate = diffDays <= 1;
+            else if (dateFilter === 'Yesterday') matchesDate = diffDays <= 2;
+            else if (dateFilter === 'Last Week') matchesDate = diffDays <= 7;
+            else if (dateFilter === 'Last Month') matchesDate = diffDays <= 30;
+        }
+
+        return matchesSearch && matchesType && matchesCategory && matchesLocation && matchesDate;
     });
+
+    const uniqueLocations = ['all', ...new Set(jobs.map(j => j?.requisition?.location).filter(Boolean))];
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-yellow-100">
@@ -56,7 +83,6 @@ const LandingPage = () => {
                             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Talent Acquisition</span>
                         </div>
                     </div>
-
 
                     <div className="flex items-center gap-4">
                         {user ? (
@@ -76,148 +102,214 @@ const LandingPage = () => {
                 </div>
             </nav>
 
-            {/* Hero Section */}
-            <header className="relative py-24 px-6 overflow-hidden">
-                <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 bg-yellow-100 text-yellow-800 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                    >
-                        Strategic Career Hub
-                    </motion.div>
+            {/* Premium Hero Section */}
+            <header className="relative pt-24 pb-20 px-6 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+                <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="flex flex-col items-center text-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-8 flex items-center gap-2 bg-yellow-400/10 text-yellow-700 px-4 py-2 rounded-full border border-yellow-200"
+                        >
+                            <Zap className="w-4 h-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Next-Gen Talent Acquisition</span>
+                        </motion.div>
 
-                    <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-8 leading-tight max-w-3xl">
-                        Design your <span className="text-yellow-500">legacy</span> with Droga.
-                    </h1>
-
-                    <p className="max-w-xl text-lg text-gray-500 mb-12 font-medium">
-                        Join an ecosystem of excellence where innovation meeting opportunity. Discover roles that define the future.
-                    </p>
-
-                    <div className="w-full max-w-2xl">
-                        <div className="bg-white border border-gray-200 p-2 rounded-2xl shadow-xl shadow-black/5 flex flex-col sm:flex-row gap-2 items-center">
-                            <div className="flex-1 w-full relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Search by role or department..."
-                                    className="w-full pl-12 pr-4 py-4 bg-transparent border-none focus:ring-0 text-sm font-medium"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                        <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-8 leading-[0.9] text-black max-w-5xl">
+                            Unlock your <br />
+                            <span className="relative inline-block">
+                                <span className="relative z-10 text-yellow-500 italic">potential</span>
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: '100%' }}
+                                    transition={{ delay: 0.5, duration: 0.8 }}
+                                    className="absolute bottom-4 left-0 h-4 bg-yellow-400/20 -z-10"
                                 />
+                            </span> with us.
+                        </h1>
+
+                        <p className="max-w-xl text-lg text-gray-400 mb-16 font-medium leading-relaxed uppercase tracking-widest text-[10px]">
+                            We don't just hire. We build the future of industry leaders. <br /> Discover high-impact roles designed for excellence.
+                        </p>
+
+                        <div className="w-full max-w-4xl mb-24">
+                            <div className="bg-white border border-gray-100 p-3 rounded-[2.5rem] shadow-2xl shadow-black/5 flex flex-col sm:flex-row gap-2 items-center hover:border-yellow-200 transition-all duration-500">
+                                <div className="flex-1 w-full relative">
+                                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 w-6 h-6" />
+                                    <select
+                                        value={typeFilter}
+                                        onChange={(e) => setTypeFilter(e.target.value)}
+                                        className="w-full pl-16 pr-4 py-6 bg-transparent border-none focus:ring-0 text-base font-bold text-black placeholder:text-gray-300"
+                                    >
+                                        <option value="all">Job Type</option>
+                                        <option value="Full-time">Full-time</option>
+                                        <option value="Freelance">Freelance</option>
+                                        <option value="Half-time">Half-time</option>
+                                        <option value="Internship">Internship</option>
+                                    </select>
+                                </div>
+                                <button className="w-full sm:w-auto bg-black text-white px-12 py-6 rounded-[2rem] font-bold text-xs uppercase tracking-widest hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-black/10 active:scale-95 duration-200">
+                                    Initiate Search <ArrowRight className="w-5 h-5" />
+                                </button>
                             </div>
-                            <button className="w-full sm:w-auto bg-black text-white px-10 py-4 rounded-xl font-bold text-sm hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2">
-                                Find Job <ArrowRight className="w-4 h-4" />
-                            </button>
                         </div>
+
+                        {/* Professional Top-Bar Filters */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="w-full max-w-5xl bg-white rounded-3xl border border-gray-100 shadow-xl shadow-black/[0.02] p-6 flex flex-wrap items-center justify-center gap-8 md:gap-12"
+                        >
+                            <div className="flex flex-col items-start gap-2">
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <Cpu className="w-3.5 h-3.5 text-yellow-500" /> Specialization
+                                </label>
+                                <select
+                                    className="bg-transparent border-none p-0 text-sm font-bold text-black focus:ring-0 cursor-pointer hover:text-yellow-600 transition-colors uppercase tracking-tight"
+                                    value={categoryFilter}
+                                    onChange={(e) => setCategoryFilter(e.target.value)}
+                                >
+                                    {JOB_CATEGORIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All Sectors' : c}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="w-px h-10 bg-gray-100 hidden md:block"></div>
+
+                            <div className="flex flex-col items-start gap-2">
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <MapPin className="w-3.5 h-3.5 text-yellow-500" /> Location
+                                </label>
+                                <select
+                                    className="bg-transparent border-none p-0 text-sm font-bold text-black focus:ring-0 cursor-pointer hover:text-yellow-600 transition-colors uppercase tracking-tight"
+                                    value={locationFilter}
+                                    onChange={(e) => setLocationFilter(e.target.value)}
+                                >
+                                    {uniqueLocations.map(l => <option key={l} value={l}>{l === 'all' ? 'Global Reach' : l}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="w-px h-10 bg-gray-100 hidden md:block"></div>
+
+                            <div className="flex flex-col items-start gap-2">
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <Activity className="w-3.5 h-3.5 text-yellow-500" /> Contract Type
+                                </label>
+                                <select
+                                    className="bg-transparent border-none p-0 text-sm font-bold text-black focus:ring-0 cursor-pointer hover:text-yellow-600 transition-colors uppercase tracking-tight"
+                                    value={typeFilter}
+                                    onChange={(e) => setTypeFilter(e.target.value)}
+                                >
+                                    {JOB_TYPES.map(t => <option key={t} value={t}>{t === 'all' ? 'Any Modality' : t}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="w-px h-10 bg-gray-100 hidden md:block"></div>
+
+                            <div className="flex flex-col items-start gap-2">
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <Clock className="w-3.5 h-3.5 text-yellow-500" /> Posting Window
+                                </label>
+                                <select
+                                    className="bg-transparent border-none p-0 text-sm font-bold text-black focus:ring-0 cursor-pointer hover:text-yellow-600 transition-colors uppercase tracking-tight"
+                                    value={dateFilter}
+                                    onChange={(e) => setDateFilter(e.target.value)}
+                                >
+                                    {DATE_OPTIONS.map(d => <option key={d} value={d}>{d === 'all' ? 'Any Timeframe' : d}</option>)}
+                                </select>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
 
-                {/* Subtle Background Elements */}
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-yellow-400/5 -skew-x-12 translate-x-20 -z-10"></div>
+                {/* Aesthetic Background Elements */}
+                <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+                    <svg viewBox="0 0 100 100" className="w-full h-full fill-yellow-400">
+                        <circle cx="90" cy="10" r="40" />
+                    </svg>
+                </div>
             </header>
 
             {/* Content Section */}
-            <main className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-12 gap-16">
-                {/* Filters */}
-                <aside className="lg:col-span-3 space-y-10">
-                    <div className="sticky top-32">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Filters</h3>
-                            <Filter className="w-4 h-4 text-gray-300" />
+            <main className="max-w-7xl mx-auto px-6 py-20">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2 h-10 bg-yellow-400"></div>
+                            <h2 className="text-4xl font-bold tracking-tight uppercase">Strategic Openings</h2>
                         </div>
-
-                        <div className="space-y-8">
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-800 uppercase tracking-wider mb-4 block">Eligibility</label>
-                                <div className="flex flex-col gap-2">
-                                    {['all', 'internal', 'external'].map(t => (
-                                        <button key={t} onClick={() => setTypeFilter(t)}
-                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all ${typeFilter === t ? 'bg-black text-white shadow-md shadow-black/10' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}>
-                                            {t}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-800 uppercase tracking-wider mb-4 block">Specialization</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {JOB_CATEGORIES.map(c => (
-                                        <button key={c} onClick={() => setCategoryFilter(c)}
-                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all border ${categoryFilter === c ? 'bg-yellow-400 border-yellow-400 text-black shadow-sm' : 'bg-white border-gray-100 text-gray-400 hover:border-yellow-400 hover:text-black'}`}>
-                                            {c}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-12 p-6 bg-gray-900 rounded-2xl text-white relative overflow-hidden group">
-                            <Zap className="w-8 h-8 text-yellow-400 mb-4 fill-yellow-400" />
-                            <h4 className="text-lg font-bold mb-2">Internal Uplink</h4>
-                            <p className="text-[10px] text-gray-400 leading-relaxed font-medium mb-6 uppercase tracking-wide">Employees can fast-track applications via internal credentials.</p>
-                            <button className="w-full py-3 bg-white text-black rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-yellow-400 transition-all">Sign In</button>
-                        </div>
+                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em] ml-5">Active Opportunities in the Ecosystem</p>
                     </div>
-                </aside>
-
-                {/* Job Grid */}
-                <div className="lg:col-span-9">
-                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-50">
-                        <h2 className="text-2xl font-bold tracking-tight">Open Opportunities</h2>
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{filteredJobs.length} Results</span>
+                    <div className="flex items-center gap-6 pb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-4xl font-black text-black leading-none">{filteredJobs.length}</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block leading-tight">Matched<br />Nodes</span>
+                        </div>
+                        {(searchTerm || categoryFilter !== 'all' || locationFilter !== 'all' || typeFilter !== 'all' || dateFilter !== 'all') && (
+                            <button
+                                onClick={() => {
+                                    setSearchTerm(''); setCategoryFilter('all'); setLocationFilter('all'); setTypeFilter('all'); setDateFilter('all');
+                                }}
+                                className="group flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase tracking-widest hover:text-black transition-colors"
+                            >
+                                <LogOut className="w-4 h-4" /> Reset Filters
+                            </button>
+                        )}
                     </div>
-
-                    {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {[1, 2, 3, 4].map(n => (
-                                <div key={n} className="h-64 bg-gray-50 rounded-2xl animate-pulse"></div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {filteredJobs.length > 0 ? filteredJobs.map((job) => (
-                                <motion.div
-                                    key={job.id}
-                                    layout
-                                    className="group bg-white rounded-2xl border border-gray-100 p-8 flex flex-col shadow-sm hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all"
-                                >
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="bg-gray-50 p-3 rounded-xl group-hover:bg-yellow-100 transition-colors">
-                                            <Briefcase className="w-6 h-6 text-gray-400 group-hover:text-yellow-600" />
-                                        </div>
-                                        <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${job.is_internal ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-50 text-blue-700'}`}>
-                                            {job.is_internal ? 'Internal' : 'External'}
-                                        </div>
-                                    </div>
-
-                                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-black transition-colors"> {job.requisition.title}</h3>
-
-                                    <div className="flex items-center gap-4 text-gray-500 text-[11px] font-bold uppercase tracking-wider mb-8">
-                                        <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {job.requisition.department}</div>
-                                        <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Posted 2d ago</div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between mt-auto">
-                                        <Link
-                                            to={`/jobs/${job.id}`}
-                                            className="w-full flex justify-between items-center py-3.5 px-6 bg-gray-50 rounded-xl group-hover:bg-black group-hover:text-white transition-all font-bold text-xs uppercase tracking-widest text-black"
-                                        >
-                                            View Profile <ChevronRight className="w-4 h-4" />
-                                        </Link>
-                                    </div>
-                                </motion.div>
-                            )) : (
-                                <div className="col-span-full py-40 border-2 border-dashed border-gray-100 rounded-3xl flex flex-col items-center">
-                                    <Search className="w-12 h-12 text-gray-200 mb-6" />
-                                    <span className="text-lg font-bold text-gray-300 uppercase italic">No roles detected matching criteria.</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
+
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {[1, 2, 3, 4, 5, 6].map(n => (
+                            <div key={n} className="h-64 bg-gray-50 rounded-2xl animate-pulse"></div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredJobs.length > 0 ? filteredJobs.map((job) => (
+                            <motion.div
+                                key={job.id}
+                                layout
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="group bg-white rounded-2xl border border-gray-100 p-8 flex flex-col shadow-sm hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all"
+                            >
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="bg-gray-50 p-3 rounded-xl group-hover:bg-yellow-100 transition-colors">
+                                        <Briefcase className="w-6 h-6 text-gray-400 group-hover:text-yellow-600" />
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${job.is_internal ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-50 text-blue-700'}`}>
+                                        {job.is_internal ? 'Internal' : 'External'}
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-black transition-colors"> {job?.requisition?.title}</h3>
+
+                                <p className="text-[10px] text-gray-400 font-medium mb-6 line-clamp-2 uppercase tracking-wider leading-relaxed">
+                                    {job?.requisition?.description || 'Strategic role focused on organizational excellence and high-impact delivery.'}
+                                </p>
+
+                                <div className="flex items-center gap-4 text-gray-500 text-[11px] font-bold uppercase tracking-wider mb-8">
+                                    <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {job?.requisition?.department}</div>
+                                    <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {new Date(job?.created_at).toLocaleDateString()}</div>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-auto">
+                                    <Link
+                                        to={`/jobs/${job.id}`}
+                                        className="w-full flex justify-between items-center py-3.5 px-6 bg-gray-50 rounded-xl group-hover:bg-black group-hover:text-white transition-all font-bold text-xs uppercase tracking-widest text-black"
+                                    >
+                                        View Details <ChevronRight className="w-4 h-4" />
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        )) : (
+                            <div className="col-span-full py-40 border-2 border-dashed border-gray-100 rounded-3xl flex flex-col items-center">
+                                <Search className="w-12 h-12 text-gray-200 mb-6" />
+                                <span className="text-lg font-bold text-gray-300 uppercase italic">No roles detected matching criteria.</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </main>
 
             {/* Footer */}
@@ -241,5 +333,6 @@ const LandingPage = () => {
         </div>
     );
 };
+
 
 export default LandingPage;

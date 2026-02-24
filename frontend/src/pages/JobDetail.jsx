@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Clock, Briefcase, ChevronLeft, Send, CheckCircle, FileText, Globe, Zap, ArrowRight, ShieldCheck } from 'lucide-react';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +13,20 @@ const JobDetail = () => {
     const [loading, setLoading] = useState(true);
     const [applying, setApplying] = useState(false);
     const [applied, setApplied] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [formData, setFormData] = useState({
+        name: user?.name || '',
+        email: user?.email || '',
+        age: '',
+        gender: 'Male',
+        phone: '',
+        professional_background: '',
+        years_of_experience: '',
+        institution_name: '',
+        cgpa: '',
+        current_address: '',
+    });
+    const [cvFile, setCvFile] = useState(null);
 
     useEffect(() => {
         const fetchJob = async () => {
@@ -28,17 +42,23 @@ const JobDetail = () => {
         fetchJob();
     }, [id]);
 
-    const handleApply = async () => {
-        if (!user) {
-            navigate(`/login?returnUrl=/jobs/${id}`);
-            return;
-        }
+    const handleApply = async (e) => {
+        e.preventDefault();
         setApplying(true);
+
+        const data = new FormData();
+        Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        if (cvFile) data.append('cv', cvFile);
+
         try {
-            await api.post('/applications', { job_posting_id: id });
+            await api.post(`/jobs/${id}/apply`, data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setApplied(true);
+            setShowModal(false);
         } catch (error) {
-            alert('Application failed. Please try again.');
+            console.error('Application error:', error.response?.data);
+            alert(error.response?.data?.message || 'Application failed. Please check your inputs and try again.');
         } finally {
             setApplying(false);
         }
@@ -90,7 +110,7 @@ const JobDetail = () => {
                             </h1>
 
                             <div className="flex flex-wrap gap-6 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg"><MapPin className="w-4 h-4 text-yellow-500" /> {job.requisition.department}</div>
+                                <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg"><MapPin className="w-4 h-4 text-yellow-500" /> {job.requisition.location || job.requisition.department}</div>
                                 <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg"><ShieldCheck className="w-4 h-4 text-yellow-500" /> {job.is_internal ? 'Internal' : 'External'}</div>
                             </div>
                         </div>
@@ -151,12 +171,16 @@ const JobDetail = () => {
                                     </p>
 
                                     <button
-                                        onClick={handleApply}
-                                        disabled={applying}
+                                        onClick={() => {
+                                            if (!user) {
+                                                navigate(`/login?returnUrl=/jobs/${id}`);
+                                                return;
+                                            }
+                                            setShowModal(true);
+                                        }}
                                         className="w-full bg-yellow-400 text-black py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-3 shadow-lg shadow-yellow-400/10"
                                     >
-                                        {applying ? 'Processing...' : 'Apply Now'}
-                                        <ArrowRight className="w-4 h-4" />
+                                        Apply Now <ArrowRight className="w-4 h-4" />
                                     </button>
                                 </div>
                             )}
@@ -171,6 +195,172 @@ const JobDetail = () => {
                     </div>
                 </aside>
             </main>
+
+            {/* Application Modal */}
+            <AnimatePresence>
+                {showModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowModal(false)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                            className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-8 sm:p-12 overflow-y-auto max-h-[85vh]">
+                                <h2 className="text-3xl font-bold mb-2 tracking-tight">Talent Synchronization</h2>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-10">Complete your professional profile for review</p>
+
+                                <form onSubmit={handleApply} className="space-y-8">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Age</label>
+                                            <input
+                                                required
+                                                type="number"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.age}
+                                                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Gender</label>
+                                            <select
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.gender}
+                                                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                            >
+                                                <option>Male</option>
+                                                <option>Female</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Institution Name</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.institution_name}
+                                                onChange={(e) => setFormData({ ...formData, institution_name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">CGPA</label>
+                                            <input
+                                                required
+                                                type="number" step="0.01"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.cgpa}
+                                                onChange={(e) => setFormData({ ...formData, cgpa: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Years of Exp.</label>
+                                            <input
+                                                required
+                                                type="number"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.years_of_experience}
+                                                onChange={(e) => setFormData({ ...formData, years_of_experience: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Current Address</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                                value={formData.current_address}
+                                                onChange={(e) => setFormData({ ...formData, current_address: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Professional Background</label>
+                                        <textarea
+                                            required
+                                            rows="3"
+                                            className="bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-400"
+                                            value={formData.professional_background}
+                                            onChange={(e) => setFormData({ ...formData, professional_background: e.target.value })}
+                                        ></textarea>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">CV Attachment (PDF Only)</label>
+                                        <div className="relative group">
+                                            <input
+                                                required
+                                                type="file"
+                                                accept=".pdf"
+                                                onChange={(e) => setCvFile(e.target.files[0])}
+                                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                            />
+                                            <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl px-5 py-8 text-center group-hover:border-yellow-400 transition-colors">
+                                                <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                                    {cvFile ? cvFile.name : 'Click or Drag to Upload PDF'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 pt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowModal(false)}
+                                            className="flex-1 py-4 px-8 border border-gray-100 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-gray-50 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            disabled={applying}
+                                            type="submit"
+                                            className="flex-[2] py-4 px-8 bg-black text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-yellow-400 hover:text-black transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-3"
+                                        >
+                                            {applying ? 'Synchronizing...' : 'Submit Application'}
+                                            <CheckCircle className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

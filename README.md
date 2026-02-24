@@ -1,72 +1,46 @@
-# Droga Group Talent Acquisition System (TAS)
-**Talent Acquisition Process Flow & System Proposal**
+# Talent Acquisition System (TAS) - Droga Group
 
-![Droga Group TAS](https://www.transparenttextures.com/patterns/carbon-fibre.png)
+## 📜 System Documentation
 
-## 📌 Introduction
-The **External and Internal Talent Acquisition Module** is a critical component of the broader Talent Acquisition System (TAS) initiative aimed at modernizing and streamlining the recruitment process for the Droga business group. 
+### 1. Introduction
+This system modernizes and streamlines the recruitment process for Droga Group, providing a seamless experience for both external and internal applicants while centralizing candidate data.
 
-Its primary purpose is to provide a seamless, professional, and efficient digital experience for external and internal job applicants—from initial application to onboarding—while centralizing all candidate data within the Talent Acquisition System.
+### 2. Core Functional Requirements
+- **Headcount Request**: Hiring managers submit requests and JDs.
+- **Job Requisition**: Recruiters manage job postings and distribution.
+- **Application Tracking**: Manage stages (submitted, reviewed, interviewed).
+- **Interview Coordination**: Automated scheduling and reminders.
+- **Offer Management**: Automated generation and email delivery.
+- **Onboarding**: Structured checklists and HRIS integration.
 
----
+### 3. User Interfaces
+#### Candidate Interface
+- **Registration**: Gmail (External) / Outlook (Internal).
+- **Profile Creation**: Name, Age, Gender, Professional background, Years of experience.
+- **Job Search**: "Find Job" featuring Active Vacancy, Talent Pool, and Internship programs.
+- **Attachments**: PDF formats for CVs and credentials.
+- **Confirmation**: Automated email notifications upon submission and status changes.
 
-## 🚀 Scope of the System
-The scope of this system comprehensively encompasses the entire candidate-facing journey:
-1. **Job Discovery**: Open positions are publicly listed and easily accessible (Internal Portal, Career Page, Ethiojobs).
-2. **Application Process**: Streamlined online form for profile creation, document uploads (PDFs), and easy application submission.
-3. **Communication & Transparency**: Automated status updates, personalized email notifications, and real-time application tracking.
-4. **Evaluation Coordination**: Automated scheduling of interviews and written exams with system-generated reminders.
-5. **Data Integration**: Bidirectional synchronization of applicant data and seamless transition to the Employee Master Data upon successful hire.
+#### Talent Acquisition Team Interface
+- **Job Posting**: Integration with Ethiojobs and others.
+- **Candidate Filtering**: Custom filters by Name, Gender, Education, and Experience.
+- **Excel Export**: Summary reports in Excel format.
+- **Offer Generation**: Automated letter generation for successful candidates.
 
----
-
-## 🏢 Platform Interfaces & Features
-
-### 1. Hiring Manager Interface
-- **Headcount Analysis & New Hire Request**: Submits requests via the system.
-- **Budget Verification**: Requests budget checks from HR.
-- **JD Preparation**: Attaches qualification requirements and Job Descriptions (JD).
-
-### 2. Chief HR Officer (CHO) & Executive Interface
-- **Budget Approval**: Verifies headcount and budget availability.
-- **CEO Approval Flow**: Routing of new hire requests for final executive sign-off.
-
-### 3. Talent Acquisition (TA) Team Interface
-- **Centric Job Posting**: Simultaneous posting to internal portals and external boards.
-- **Advanced Filtering & Data Export**: Filter candidates by Name, Gender, CGPA, Experience, etc., and export to Excel.
-- **Automated Shortlisting & Communication**: Automated advancement of candidates with batch email notifications (including customized rejection emails).
-- **Offer Letter Generation**: Automated offer creation with pre-employment formalities attached.
-
-### 4. Candidate Interface (Internal & External)
-- **Profile Creation**: Comprehensive profile including Age, Gender, CGPA, Institution, Address, and PDF attachments.
-- **Categorized Job Search**: Filter by Active Vacancies, Talent Pool, and Internships.
-- **Automated Tracking**: Instant email confirmations and shortlisting notifications.
-- **Feedback Mechanism**: A dedicated chat/feedback room for recruitment process transparency.
+### 4. Technical Priorities
+- **PDF Support**: Mandatory for all uploads.
+- **Internal/External Tagging**: Automatic source tracking.
+- **Talent Pool**: Adding rejected candidates for future matching.
+- **Calendar Integration**: Synchronization for interviews and exams.
 
 ---
 
-## 🛠️ Technology Stack & Architecture
+## 🛠️ Implementation Progress
 
-### Backend (Laravel 11)
-- **RESTful API**: Serves data to the frontend React application.
-- **Sanctum Authentication**: Secure bearer token authentication for varying role access.
-- **Database (MySQL)**: Complex relational mapping for Jobs, Requisitions, Users, Applications, and Interviews.
-- **Automated Mailer**: Queued email dispatching for offer letters, rejections, and interview schedules.
-
-### Frontend (React + Vite + Tailwind CSS + Framer Motion)
-- **Industrial Brutalist Theme**: A premium White/Black/Yellow aesthetic.
-- **Role-Based Routing**: Distinct dashboards for Candidates, TAs, Hiring Managers, CHOs, and Admins.
-- **Interactive UI**: Real-time filtering, dynamic modals, and smooth page transitions using Framer Motion.
-
----
-
-## 📊 Process Optimization (To-Be State)
-
-By transitioning from manual, fragmented tools (Excel, email, Telegram) to this unified TAS, Droga Group will achieve:
-- **Zero Data Duplication**: One unified source of truth from applicant phase to Master Data phase.
-- **Enhanced Candidate Experience**: Professional, responsive, and transparent communication.
-- **Data-Driven Decisions**: Advanced reporting on Time-to-Hire, Applicant Metrics, Source Effectiveness, Cost-to-Hire, and Acceptance Rates.
-
----
-*Prepared by the Talent Acquisition Team.*  
-*November 2025 | Addis Ababa, Ethiopia*
+- [x] Redesigned Job Filters UI (Top-bar layout)
+- [x] Public Job Browsing (Guest access)
+- [x] Role-Based Access Control (RBAC)
+- [x] Forgot Password workflow
+- [ ] Advanced Application Form (In Progress)
+- [ ] Email Notification System (In Progress)
+- [ ] Admin/Manager Portal enhancements

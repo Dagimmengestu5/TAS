@@ -14,13 +14,17 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/email', [AuthController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('password.reset');
 
+// Public Job Access
+Route::get('/jobs', [JobController::class, 'index']);
+Route::get('/jobs/{job}', [JobController::class, 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 
-    // Job Management
-    Route::apiResource('jobs', JobController::class);
+    // Job Management (Protected actions)
+    Route::apiResource('jobs', JobController::class)->except(['index', 'show']);
     
     // Applications
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'apply']);

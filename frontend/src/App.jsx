@@ -11,7 +11,22 @@ import CHODashboard from './pages/CHODashboard';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import UserProfile from './pages/UserProfile';
 import { useAuth } from './context/AuthContext';
+import { Navigate } from 'react-router-dom';
+
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" />;
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role?.name)) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
 
 const App = () => {
   const { loading } = useAuth();
@@ -33,10 +48,13 @@ const App = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin/pipeline" element={<ApplicationPipeline />} />
-      <Route path="/manager/request" element={<ManagerPortal />} />
-      <Route path="/executive/approvals" element={<CHODashboard />} />
+
+      {/* Protected Routes */}
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'ta']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/pipeline" element={<ProtectedRoute allowedRoles={['admin', 'ta']}><ApplicationPipeline /></ProtectedRoute>} />
+      <Route path="/manager/request" element={<ProtectedRoute allowedRoles={['manager']}><ManagerPortal /></ProtectedRoute>} />
+      <Route path="/executive/approvals" element={<ProtectedRoute allowedRoles={['executive']}><CHODashboard /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
     </Routes>
   );
 };
