@@ -31,7 +31,7 @@
         }
         p {
             color: #6b7280;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
         .back-link {
             display: inline-block;
