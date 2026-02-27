@@ -1,0 +1,145 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, X, Check, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import api from '../api/api';
+import { formatDistanceToNow } from 'date-fns';
+
+const NotificationDropdown = () => {
+    const [notifications, setNotifications] = useState([]);
+    const [isOpen, setIsOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const fetchNotifications = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/notifications');
+            setNotifications(response.data.notifications);
+            setUnreadCount(response.data.count);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+        // Poll for updates every 60 seconds
+        const interval = setInterval(fetchNotifications, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleMarkAsRead = async (id) => {
+        try {
+            await api.patch(`/notifications/${id}/read`);
+            setNotifications(notifications.filter(n => n.id !== id));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            await api.post('/notifications/mark-all-read');
+            setNotifications([]);
+            setUnreadCount(0);
+        } catch (error) {
+            console.error('Failed to mark all as read:', error);
+        }
+    };
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="relative p-2.5 bg-gray-50 hover:bg-white rounded-xl transition-all text-gray-400 hover:text-gray-900 border border-gray-100 shadow-sm active:scale-95 group"
+            >
+                <Bell className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-yellow text-[10px] font-black text-gray-900 border-2 border-white shadow-sm animate-bounce-slow">
+                        {unreadCount}
+                    </span>
+                )}
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                    >
+                        <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-gray-900 flex items-center gap-2 italic">
+                                <div className="w-1.5 h-4 bg-brand-yellow rounded-full"></div> Node Notifications
+                            </h3>
+                            <button
+                                onClick={handleMarkAllRead}
+                                className="text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-yellow transition-colors italic"
+                            >
+                                Clear All
+                            </button>
+                        </div>
+
+                        <div className="max-h-96 overflow-y-auto">
+                            {loading && notifications.length === 0 ? (
+                                <div className="p-8 text-center">
+                                    <div className="w-6 h-6 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">Scanning Grid...</p>
+                                </div>
+                            ) : notifications.length === 0 ? (
+                                <div className="p-12 text-center">
+                                    <Bell className="w-8 h-8 text-gray-100 mx-auto mb-3" />
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic leading-relaxed">No active signals detected in the transmission grid.</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-gray-50">
+                                    {notifications.map((notification) => (
+                                        <div
+                                            key={notification.id}
+                                            onClick={() => handleMarkAsRead(notification.id)}
+                                            className="p-4 hover:bg-gray-50/80 cursor-pointer transition-all group border-l-4 border-transparent hover:border-brand-yellow"
+                                        >
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-tight italic leading-none truncate pr-4">
+                                                    {notification.data.title || 'System Notification'}
+                                                </h4>
+                                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter whitespace-nowrap flex items-center gap-1 italic">
+                                                    <Clock className="w-2.5 h-2.5" />
+                                                    {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500 font-medium leading-relaxed italic line-clamp-2 uppercase tracking-wide">
+                                                {notification.data.message || 'Transmission received at terminal.'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-3 border-t border-gray-50 bg-gray-50/50 text-center">
+                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 italic">Ecosystem Encryption Active</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+export default NotificationDropdown;

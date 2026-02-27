@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobPosting extends Model
 {
-    protected $fillable = ['job_requisition_id', 'is_internal', 'is_external', 'deadline', 'status'];
+    protected $fillable = ['job_requisition_id', 'is_internal', 'is_external', 'deadline', 'status', 'description', 'title', 'tags', 'location', 'employment_type'];
 
     public function requisition()
     {

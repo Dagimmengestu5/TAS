@@ -10,14 +10,16 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const checkAuth = async () => {
             const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await api.get('/me');
-                    setUser(response.data);
-                } catch (error) {
-                    localStorage.removeItem('token');
-                    setUser(null);
-                }
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+            try {
+                const response = await api.get('/me');
+                setUser(response.data);
+            } catch (error) {
+                localStorage.removeItem('token');
+                setUser(null);
             }
             setLoading(false);
         };
@@ -39,11 +41,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
+        // Clear state immediately for responsiveness
+        setUser(null);
+        localStorage.removeItem('token');
+
         try {
             await api.post('/logout');
-        } finally {
-            localStorage.removeItem('token');
-            setUser(null);
+        } catch (error) {
+            console.warn('Backend logout synchronization failed, but local session cleared.');
         }
     };
 

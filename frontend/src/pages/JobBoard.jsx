@@ -109,9 +109,15 @@ const JobBoard = () => {
                                     </div>
                                     <Link
                                         to={`/jobs/${job.id}`}
-                                        className="bg-gray-50 text-black px-5 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center gap-2 group-hover:bg-yellow-400 group-hover:text-black"
+                                        className="bg-gray-50 text-black px-4 py-2.5 rounded-lg font-bold text-[9px] uppercase tracking-widest hover:bg-gray-200 transition-all flex items-center gap-2"
                                     >
-                                        Inspect <ChevronRight className="w-3.5 h-3.5" />
+                                        Inspect
+                                    </Link>
+                                    <Link
+                                        to={`/jobs/${job.id}?apply=true`}
+                                        className="bg-gray-100 text-black px-6 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition-all flex items-center gap-2"
+                                    >
+                                        Apply <ChevronRight className="w-3.5 h-3.5" />
                                     </Link>
                                 </div>
                             </motion.div>

@@ -3,10 +3,16 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\ApplicationController;
+use App\Http\Controllers\Api\SocialiteController;
+use App\Http\Controllers\Api\OtpVerificationController;
 use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RequisitionController;
+use App\Http\Controllers\Api\OrgController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -17,6 +23,10 @@ Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('
 // Public Job Access
 Route::get('/jobs', [JobController::class, 'index']);
 Route::get('/jobs/{job}', [JobController::class, 'show']);
+// Email Verification (OTP Based)
+Route::post('/email/send-otp', [OtpVerificationController::class, 'sendOtp'])
+    ->middleware(['throttle:6,1']);
+Route::post('/email/verify-otp', [OtpVerificationController::class, 'verifyOtp']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -24,7 +34,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 
     // Job Management (Protected actions)
+    Route::get('/jobs/all', [JobController::class, 'all']);
+    Route::patch('/jobs/{job}/approve', [JobController::class, 'approve']);
+    Route::patch('/jobs/{job}/reject', [JobController::class, 'reject']);
     Route::apiResource('jobs', JobController::class)->except(['index', 'show']);
+    
+    // Requisitions (Creation and Basic Fetching)
+    Route::get('/requisitions', [RequisitionController::class, 'index']);
+    Route::post('/requisitions', [RequisitionController::class, 'store']);
+    Route::post('/requisitions/{requisition}/update', [RequisitionController::class, 'update']);
+    Route::delete('/requisitions/{requisition}', [RequisitionController::class, 'destroy']);
+    
+    // --- NEW DEDICATED APPROVAL DASHBOARD ENDPOINTS ---
+    Route::get('/approvals/hr/requisitions', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'getHrRequisitions']);
+    Route::patch('/approvals/hr/requisitions/{id}/approve', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'approveHrRequisition']);
+    Route::patch('/approvals/hr/requisitions/{id}/reject', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'rejectHrRequisition']);
+
+    Route::get('/approvals/ceo/requisitions', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'getCeoRequisitions']);
+    Route::patch('/approvals/ceo/requisitions/{id}/approve', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'approveCeoRequisition']);
+    Route::patch('/approvals/ceo/requisitions/{id}/reject', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'rejectCeoRequisition']);
     
     // Applications
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'apply']);
@@ -41,6 +69,31 @@ Route::middleware('auth:sanctum')->group(function () {
     // Onboarding
     Route::apiResource('onboarding', OnboardingController::class);
 
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+
+    // User Management
+    Route::get('/roles', [UserController::class, 'roles']);
+    Route::apiResource('users', UserController::class);
+
+    // Organization Structure
+    Route::get('/companies', [OrgController::class, 'companies']);
+    Route::post('/companies', [OrgController::class, 'storeCompany']);
+    Route::put('/companies/{company}', [OrgController::class, 'updateCompany']);
+    Route::delete('/companies/{company}', [OrgController::class, 'destroyCompany']);
+
+    Route::get('/departments', [OrgController::class, 'departments']);
+    Route::get('/companies/{companyId}/departments', [OrgController::class, 'departments']);
+    Route::post('/departments', [OrgController::class, 'storeDepartment']);
+    Route::put('/departments/{department}', [OrgController::class, 'updateDepartment']);
+    Route::delete('/departments/{department}', [OrgController::class, 'destroyDepartment']);
+
     // Reports
     Route::get('/reports/metrics', [ReportController::class, 'getRecruitmentMetrics']);
 });
+
+// OAuth Routes
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect']);
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']);

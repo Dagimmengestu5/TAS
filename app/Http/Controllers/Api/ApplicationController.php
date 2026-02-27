@@ -55,6 +55,13 @@ class ApplicationController extends Controller
             'status' => 'submitted',
         ]);
 
+        // Record initial status history
+        $application->histories()->create([
+            'status' => 'submitted',
+            'feedback' => 'Initial application synchronization.',
+            'user_id' => $request->user()->id
+        ]);
+
         // Send confirmation email
         $candidate->notify(new \App\Notifications\ApplicationSubmitted($application));
 
@@ -67,22 +74,27 @@ class ApplicationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
-        // If user is candidate, show only their applications
-        if ($user->role && $user->role->name === 'candidate') {
+        $scope = $request->query('scope');
+
+        // If specific scope is 'self', only show user's own applications
+        if ($scope === 'self' || ($user->role && $user->role->name === 'candidate')) {
             $candidate = Candidate::where('user_id', $user->id)->first();
             if (!$candidate) return response()->json([]);
-            return response()->json(Application::with('jobPosting.requisition')->where('candidate_id', $candidate->id)->get());
+            return response()->json(Application::with(['jobPosting.requisition', 'histories' => function($q) {
+                $q->latest();
+            }])->where('candidate_id', $candidate->id)->get());
         }
 
         // Otherwise (Admin/TA), show all applications
-        return response()->json(Application::with(['jobPosting.requisition', 'candidate'])->get());
+        return response()->json(Application::with(['jobPosting.requisition', 'candidate', 'histories' => function($q) {
+            $q->with('user')->latest();
+        }])->get());
     }
 
     public function updateStatus(Request $request, Application $application)
     {
         $request->validate([
-            'status' => 'required|string|in:submitted,written_test,interview_1,interview_2,offer,rejected,hired',
+            'status' => 'required|string|in:submitted,written_test,interview_1,interview_2,offer,rejected,hired,pooled',
             'feedback' => 'nullable|string',
         ]);
 
@@ -91,10 +103,27 @@ class ApplicationController extends Controller
             'feedback' => $request->feedback ?? $application->feedback,
         ]);
 
-        if ($request->status === 'rejected') {
-            $application->candidate->notify(new \App\Notifications\ApplicationRejected($application));
-        }
+        // Record status change history
+        $application->histories()->create([
+            'status' => $request->status,
+            'feedback' => $request->feedback ?? 'Status synchronized to ' . $request->status,
+            'user_id' => $request->user()->id
+        ]);
 
-        return response()->json($application);
+        // Ensure all data is eager loaded for the notification
+        $application->load(['candidate', 'jobPosting.requisition']);
+
+        \Illuminate\Support\Facades\Log::info('Dispatching ApplicationStatusUpdated notification', [
+            'application_id' => $application->id,
+            'candidate_email' => $application->candidate->email,
+            'status' => $request->status
+        ]);
+
+        // Send notification for every status change
+        $application->candidate->notify(new \App\Notifications\ApplicationStatusUpdated($application, $request->feedback));
+
+        return response()->json($application->load(['histories' => function($q) {
+            $q->with('user')->latest();
+        }]));
     }
 }

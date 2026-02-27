@@ -27,4 +27,9 @@ class Application extends Model
     {
         return $this->hasOne(Offer::class);
     }
+
+    public function histories()
+    {
+        return $this->hasMany(ApplicationStatusHistory::class);
+    }
 }

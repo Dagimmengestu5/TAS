@@ -46,6 +46,7 @@ class ApplicationRejected extends Notification
             ->line('Following a thorough review of your professional profile, we have decided not to move forward with your application at this time.')
             ->line('However, we were impressed with your background and have added your profile to our Talent Pool for future opportunities that align with your skills.')
             ->line('We wish you the very best in your professional journey and thank you again for your interest in Droga Group.')
+            ->action('View Other Opportunities', config('app.frontend_url'))
             ->salutation('Best regards, The Droga Group Talent Acquisition Team');
     }
 

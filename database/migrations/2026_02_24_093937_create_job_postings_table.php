@@ -17,7 +17,9 @@ return new class extends Migration
             $table->boolean('is_internal')->default(false);
             $table->boolean('is_external')->default(false);
             $table->dateTime('deadline')->nullable();
-            $table->string('status')->default('active'); // active, closed, draft
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->string('status')->default('pending_hr'); // pending_hr, active, rejected, closed, draft
             $table->timestamps();
         });
     }

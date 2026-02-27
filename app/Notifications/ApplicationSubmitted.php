@@ -45,7 +45,7 @@ class ApplicationSubmitted extends Notification
             ->line('Thank you for applying to the ' . $jobTitle . ' position at Droga Group.')
             ->line('We have successfully received your professional profile and attachments.')
             ->line('Our Talent Acquisition team will review your qualifications and synchronize with you shortly regarding the next steps.')
-            ->action('View My Applications', url('/profile'))
+            ->action('View My Applications', config('app.frontend_url') . '/profile')
             ->line('Thank you for your interest in joining our team!')
             ->salutation('Best regards, The Droga Group Talent Acquisition Team');
     }

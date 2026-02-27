@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Mail\OtpVerificationMail;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -32,17 +36,23 @@ class AuthController extends Controller
             'role_id' => $role ? $role->id : null,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Generate and send 6-digit OTP
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $user->update(['otp_code' => $code]);
+        Mail::to($user->email)->send(new OtpVerificationMail($code, $user->email));
 
+        // Do not issue token until email is verified
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'message' => 'Registration successful. Please verify your email.',
+            'requires_verification' => true,
+            'email' => $user->email,
             'user' => $user->load('role'),
-        ]);
+        ], 201);
     }
 
     public function login(Request $request)
     {
+        \Log::info('Login attempt for email: ' . $request->email);
         $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
@@ -54,6 +64,14 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
+        }
+
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Please verify your email address to log in.',
+                'requires_verification' => true,
+                'email' => $user->email
+            ], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -131,5 +149,22 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user()->load('role'));
+    }
+
+    public function resendVerification(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.']);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Verification link sent.']);
+    }
+
+    public function verify(EmailVerificationRequest $request)
+    {
+        $request->fulfill();
+        return response()->json(['message' => 'Email verified successfully.']);
     }
 }

@@ -23,146 +23,126 @@ const AdminDashboard = () => {
     }, []);
 
     const handleLogout = async () => {
-        await logout();
         navigate('/');
+        await logout();
     };
 
     return (
-        <div className="flex min-h-screen bg-[#fcfcfc] font-sans text-gray-900 selection:bg-yellow-100">
-            {/* Sidebar */}
-            <aside className="w-72 bg-white flex flex-col fixed inset-y-0 border-r border-gray-100 shadow-sm z-50">
-                <div className="p-8 mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center text-yellow-400 font-bold shadow-sm">D</div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-sm tracking-tight uppercase">Droga OS</span>
-                            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Admin Console</span>
-                        </div>
-                    </div>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-1">
-                    {[
-                        { icon: <LayoutDashboard className="w-4 h-4" />, label: 'Overview', active: true, path: '/admin' },
-                        { icon: <Briefcase className="w-4 h-4" />, label: 'Job Matrix', path: '/jobs' },
-                        { icon: <Users className="w-4 h-4" />, label: 'Candidates', path: '/admin/pipeline' },
-                        { icon: <PieChart className="w-4 h-4" />, label: 'Analytics', path: '/admin/reports' },
-                    ].map((item, i) => (
-                        <Link to={item.path} key={i} className={`flex items-center justify-between px-5 py-3 rounded-xl transition-all group ${item.active ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/10' : 'text-gray-400 hover:text-black hover:bg-gray-50'
-                            }`}>
-                            <div className="flex items-center gap-3">
-                                {item.icon} <span className="uppercase tracking-widest text-[10px] font-bold">{item.label}</span>
+        <div className="bg-white min-h-screen w-full px-8 py-8 lg:px-12 font-['Outfit']">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {[
+                    { label: 'Total Units', val: metrics?.total_applications || 0, change: '+12.4%', up: true, icon: Users },
+                    { label: 'Active Nodes', val: metrics?.active_postings || 0, change: '+2', up: true, icon: Briefcase },
+                    { label: 'Sync Efficiency', val: '94.2%', change: '+0.8%', up: true, icon: TrendingUp },
+                    { label: 'Hired Assets', val: metrics?.hired_count || 0, change: '0.0%', up: true, icon: Zap },
+                ].map((stat, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden"
+                    >
+                        <div className="flex justify-between items-start mb-4 relative z-10">
+                            <div className="p-3 bg-gray-50 rounded-lg group-hover:bg-gray-900 transition-all duration-300 border border-gray-100">
+                                <stat.icon className="w-4 h-4 text-gray-400 group-hover:text-brand-yellow transition-colors" />
                             </div>
-                            {item.active && <ChevronRight className="w-3 h-3" />}
+                            <span className={`text-[9px] font-black px-2 py-1 rounded-md border tracking-wider uppercase ${stat.up
+                                ? 'bg-green-50 border-green-100 text-green-600'
+                                : 'bg-red-50 border-red-100 text-red-600'
+                                }`}>
+                                {stat.change}
+                            </span>
+                        </div>
+                        <p className="text-[9px] font-black text-gray-400 group-hover:text-brand-yellow uppercase tracking-widest mb-1 transition-colors italic leading-none">{stat.label}</p>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase italic leading-none">{stat.val}</h2>
+                    </motion.div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div className="flex justify-between items-center mb-8 relative z-10">
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3 uppercase italic">
+                            <div className="w-1.5 h-8 bg-brand-yellow rounded-full shadow-[0_0_10px_#FFF200]"></div> Pipeline Vector Hub
+                        </h3>
+                        <Link to="/admin/pipeline" className="group flex items-center gap-2.5 bg-gray-900 text-brand-yellow px-5 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-md italic border border-gray-800">
+                            Examine Cluster <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </Link>
-                    ))}
-                </nav>
-
-                <div className="p-6">
-                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 mb-1">Authenticated</p>
-                        <p className="font-bold text-[11px] truncate mb-4 uppercase">{user?.name}</p>
-                        <button onClick={handleLogout} className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
-                            <LogOut className="w-3.5 h-3.5" /> Sign Out
-                        </button>
                     </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 ml-72 p-10 md:p-14">
-                <header className="flex justify-between items-center mb-12">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Command Center</h1>
-                        <p className="text-gray-400 font-bold uppercase text-[9px] tracking-[0.3em] mt-2 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> System Pulse: Stable
-                        </p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button className="w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 hover:text-black hover:border-yellow-400 transition-all shadow-sm">
-                            <Bell className="w-5 h-5" />
-                        </button>
-                        <button className="w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 hover:text-black hover:border-yellow-400 transition-all shadow-sm">
-                            <Settings className="w-5 h-5" />
-                        </button>
-                    </div>
-                </header>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {[
-                        { label: 'Applications', val: metrics?.total_applications || 0, change: '+12%', up: true },
-                        { label: 'Live Roles', val: metrics?.active_postings || 0, change: '+2', up: true },
-                        { label: 'Placement Rate', val: '88%', change: '+0.5%', up: true },
-                        { label: 'Hired Units', val: metrics?.hired_count || 0, change: '0', up: true },
-                    ].map((stat, i) => (
-                        <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">{stat.label}</p>
-                            <div className="flex items-end justify-between">
-                                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">{stat.val}</h2>
-                                <span className={`text-[8px] font-bold px-2 py-1 rounded-md ${stat.up ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
-                                    }`}>
-                                    {stat.change}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                        <div className="flex justify-between items-center mb-10">
-                            <h3 className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-3 uppercase">
-                                <Activity className="w-5 h-5 text-yellow-500" /> Pipeline Status
-                            </h3>
-                            <button className="text-[10px] font-bold text-yellow-600 hover:text-black uppercase tracking-widest border-b border-yellow-200 pb-0.5">Full Details</button>
-                        </div>
-                        <div className="space-y-8">
-                            {metrics?.status_breakdown?.map((s, i) => (
-                                <div key={i} className="group">
-                                    <div className="flex justify-between items-end mb-2">
-                                        <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wide">{s.status.replace('_', ' ')}</span>
-                                        <span className="text-[9px] font-bold text-gray-300 uppercase">{s.count} Node{s.count !== 1 ? 's' : ''}</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(s.count / metrics.total_applications) * 100}%` }}
-                                            className="h-full bg-black rounded-full transition-all"
-                                        ></motion.div>
+                    <div className="space-y-8 relative z-10">
+                        {metrics?.status_breakdown?.map((s, i) => (
+                            <div key={i} className="group/item cursor-default">
+                                <div className="flex justify-between items-end mb-3 px-1">
+                                    <span className="text-[11px] font-bold text-gray-900 uppercase tracking-widest italic">{s.status.replace('_', ' ')}</span>
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{s.count} Units active</span>
+                                        <span className="text-[9px] font-black text-gray-900 bg-brand-yellow px-1.5 py-0.5 rounded shadow-sm italic leading-none">{Math.round((s.count / metrics.total_applications) * 100)}%</span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-50 shadow-inner">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${(s.count / metrics.total_applications) * 100}%` }}
+                                        transition={{ duration: 1, ease: 'easeOut' }}
+                                        className="h-full bg-gray-900 group-hover/item:bg-brand-yellow rounded-full transition-all"
+                                    />
+                                </div>
+                            </div>
+                        ))}
                     </div>
+                </div>
 
-                    <div className="lg:col-span-4 bg-gray-900 text-white p-8 rounded-3xl shadow-xl shadow-black/10 flex flex-col justify-between">
-                        <div>
-                            <h3 className="text-lg font-bold tracking-tight mb-6 flex items-center gap-3 uppercase text-yellow-400">
-                                <Cpu className="w-5 h-5" /> Node Health
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-gray-900 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden flex flex-col justify-between border border-gray-800 min-h-[400px] group/card">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-[60px] -mr-20 -mt-20"></div>
+
+                        <div className="relative z-10">
+                            <h3 className="text-lg font-black tracking-tight mb-8 flex items-center gap-3 uppercase text-brand-yellow italic">
+                                <Cpu className="w-5 h-5" /> Node Integrity Trace
                             </h3>
-                            <div className="space-y-5">
+                            <div className="space-y-6">
                                 {[
-                                    { label: 'API Gateway', status: 'Stable' },
-                                    { label: 'Talent Engine', status: 'Active' },
-                                    { label: 'Storage Node', status: 'Synced' }
+                                    { label: 'Ecosystem Core', status: 'Optimal', health: 100 },
+                                    { label: 'Transmission Grid', status: 'Synchronized', health: 98 },
+                                    { label: 'Security Protocols', status: 'Encrypted', health: 100 }
                                 ].map((s, i) => (
-                                    <div key={i} className="flex items-center justify-between border-b border-white/5 pb-3">
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{s.label}</span>
-                                        <span className="text-[9px] font-bold text-yellow-400 flex items-center gap-1.5 uppercase tracking-wide">
-                                            <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div> {s.status}
-                                        </span>
+                                    <div key={i} className="flex flex-col gap-2 group/item">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest italic">{s.label}</span>
+                                            <span className="text-[9px] font-black text-brand-yellow flex items-center gap-2 uppercase tracking-widest italic leading-none">
+                                                <span className="w-1.5 h-1.5 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_8px_#FFF200]"></span> {s.status}
+                                            </span>
+                                        </div>
+                                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-brand-yellow/10 w-full group-hover/item:bg-brand-yellow/20 transition-all duration-500"></div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="mt-12 bg-white/5 rounded-2xl p-5 border border-white/10">
-                            <ShieldCheck className="w-8 h-8 text-white/20 mb-3" />
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Security Clearance: Approved</p>
+                        <div className="mt-8 bg-white/5 rounded-xl p-6 border border-white/5 flex items-center gap-5 relative z-10 hover:bg-white/10 transition-all shadow-lg">
+                            <div className="w-11 h-11 bg-brand-yellow/10 rounded-xl flex items-center justify-center border border-brand-yellow/20 group-hover/card:bg-brand-yellow group-hover/card:text-gray-900 transition-all shadow-md">
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div className="flex flex-col">
+                                <p className="text-[12px] font-black uppercase tracking-widest text-white italic leading-none">Protocol Secure</p>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 italic mt-1 leading-none">Authorization Hub active</p>
+                            </div>
                         </div>
                     </div>
+
+                    <div className="bg-brand-yellow p-8 rounded-3xl shadow-md group cursor-pointer hover:scale-[1.01] transition-all border border-brand-yellow relative overflow-hidden">
+                        <div className="flex justify-between items-center mb-4 relative z-10">
+                            <TrendingUp className="w-8 h-8 text-black/20 group-hover:text-black transition-all group-hover:rotate-6" />
+                            <span className="text-[9px] font-black uppercase tracking-widest bg-black/10 px-3 py-1.5 rounded-lg italic text-black">Live Pulse</span>
+                        </div>
+                        <h4 className="text-xl font-black text-black uppercase tracking-tight leading-[0.85] mb-3 relative z-10 italic">Optimization Module</h4>
+                        <p className="text-black/70 text-[10px] font-bold uppercase tracking-wider italic leading-relaxed relative z-10">Global ecosystem synchronization active at optimum capacity thresholds.</p>
+                    </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 };

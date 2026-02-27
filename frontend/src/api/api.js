@@ -1,13 +1,15 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://10.10.40.50:8003/api',
+    baseURL: import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8003/api`,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
     withCredentials: false,
 });
+
+console.log('API BASE URL:', api.defaults.baseURL);
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
