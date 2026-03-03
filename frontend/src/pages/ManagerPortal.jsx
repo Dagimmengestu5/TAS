@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlusCircle, FileText, Building2, Send, ChevronLeft, ArrowRight, Zap, Target, Activity, ShieldCheck, History, LayoutGrid, Clock, CheckCircle, XCircle, Users, MessageSquare, Pencil, Trash2, Lock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 const ManagerPortal = () => {
     const navigate = useNavigate();
@@ -26,10 +27,28 @@ const ManagerPortal = () => {
     const [editingReq, setEditingReq] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // req to delete
 
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin';
+
     useEffect(() => {
         fetchRequisitions();
         fetchCompanies();
-    }, []);
+
+        // Auto-fill for non-admins
+        if (!isAdmin && user) {
+            setFormData(prev => ({
+                ...prev,
+                company_id: user.company_id || '',
+                department_id: user.department_id || ''
+            }));
+            // Pre-load departments if company is fixed
+            if (user.company_id) {
+                api.get(`/companies/${user.company_id}/departments`)
+                    .then(r => setDepartments(r.data))
+                    .catch(() => { });
+            }
+        }
+    }, [user, isAdmin]);
 
     const fetchRequisitions = async () => {
         try {
@@ -156,11 +175,11 @@ const ManagerPortal = () => {
 
     const getStatusLabel = (status) => {
         switch (status) {
-            case 'approved': return 'APPROVED';
-            case 'rejected': return 'REJECTED';
-            case 'pending_hr': return 'PENDING HR';
-            case 'pending_ceo': return 'PENDING CEO';
-            default: return status?.toUpperCase() || 'UNKNOWN';
+            case 'approved': return 'Approved';
+            case 'rejected': return 'Rejected';
+            case 'pending_hr': return 'Pending HR';
+            case 'pending_ceo': return 'Pending CEO';
+            default: return status ? status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ') : 'Unknown';
         }
     };
 
@@ -168,59 +187,66 @@ const ManagerPortal = () => {
     const renderRequisitionFormFields = (data, setData, isEdit = false) => (
         <div className="space-y-10">
             <div className="space-y-4">
-                <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
-                    <FileText className="w-5 h-5 text-brand-yellow" /> Role Title
+                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2.5">
+                    <FileText className="w-4 h-4 text-brand-yellow" /> Role Title
                 </label>
                 <input
                     type="text" required
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-lg uppercase tracking-tight transition-all focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow text-gray-900 placeholder:text-gray-200 shadow-inner "
-                    placeholder="POSITION TITLE"
+                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-lg tracking-tight transition-all focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-yellow/10 focus:border-brand-yellow text-gray-900 placeholder:text-gray-300 shadow-sm "
+                    placeholder="Enter position title..."
                     value={data.title}
                     onChange={e => setData({ ...data, title: e.target.value })}
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                    <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
-                        <Building2 className="w-5 h-5 text-brand-yellow" /> Company
-                    </label>
-                    <div className="relative">
-                        <select
-                            required
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-inner "
-                            value={data.company_id}
-                            onChange={e => handleCompanyChange(e.target.value, data, setData)}
-                        >
-                            <option value="">SELECT COMPANY</option>
-                            {companies.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                        </select>
-                        <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+            {isAdmin ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2.5">
+                            <Building2 className="w-4 h-4 text-brand-yellow" /> Company
+                        </label>
+                        <div className="relative">
+                            <select
+                                required
+                                className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/10 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-sm "
+                                value={data.company_id}
+                                onChange={e => handleCompanyChange(e.target.value, data, setData)}
+                            >
+                                <option value="">Select Company</option>
+                                {companies.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                            </select>
+                            <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2.5">
+                            <Target className="w-4 h-4 text-brand-yellow" /> Department
+                        </label>
+                        <div className="relative">
+                            <select
+                                required
+                                disabled={!data.company_id}
+                                className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/10 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-sm  disabled:opacity-50"
+                                value={data.department_id}
+                                onChange={e => setData({ ...data, department_id: e.target.value })}
+                            >
+                                <option value="">{data.company_id ? 'Select Department' : 'Awaiting Selection'}</option>
+                                {departments.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                            </select>
+                            <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+                        </div>
                     </div>
                 </div>
-                <div className="space-y-4">
-                    <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
-                        <Target className="w-5 h-5 text-brand-yellow" /> Department
-                    </label>
-                    <div className="relative">
-                        <select
-                            required
-                            disabled={!data.company_id}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-inner  disabled:opacity-50"
-                            value={data.department_id}
-                            onChange={e => setData({ ...data, department_id: e.target.value })}
-                        >
-                            <option value="">{data.company_id ? 'SELECT DEPARTMENT' : 'AWAITING SELECTION'}</option>
-                            {departments.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
-                        </select>
-                        <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
-                    </div>
+            ) : (
+                <div className="hidden">
+                    <input type="hidden" value={data.company_id} />
+                    <input type="hidden" value={data.department_id} />
                 </div>
-            </div>
+            )}
 
             <div className="space-y-4">
-                <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
-                    <ShieldCheck className="w-5 h-5 text-brand-yellow" /> Job Description (PDF/DOC)
+                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-brand-yellow" /> Job Description (PDF/DOC)
                     {isEdit && data.existing_jd && <span className="text-[8px] text-green-500 normal-case font-bold ml-1">• File uploaded</span>}
                 </label>
                 <div className="relative group">
@@ -229,8 +255,8 @@ const ManagerPortal = () => {
                         onChange={e => setData({ ...data, jd: e.target.files[0] })}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                     />
-                    <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all group-hover:border-brand-yellow group-hover:bg-white shadow-inner group-hover:shadow-2xl group-hover:shadow-brand-yellow/10">
-                        <PlusCircle className="w-10 h-10 text-gray-200 group-hover:text-brand-yellow mb-3 transition-all group-hover:scale-110" />
+                    <div className="bg-gray-50/50 border-2 border-dashed border-gray-100 rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all group-hover:border-brand-yellow group-hover:bg-white shadow-sm group-hover:shadow-xl group-hover:shadow-brand-yellow/5">
+                        <PlusCircle className="w-8 h-8 text-gray-300 group-hover:text-brand-yellow mb-3 transition-all group-hover:scale-110" />
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-900 transition-colors ">
                             {data.jd ? data.jd.name : isEdit ? 'Replace file (optional)' : 'Upload Job Description'}
                         </p>
@@ -239,13 +265,40 @@ const ManagerPortal = () => {
             </div>
 
             <div className="space-y-4">
-                <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
-                    <Activity className="w-5 h-5 text-brand-yellow" /> Description
+                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2.5">
+                    <Target className="w-4 h-4 text-brand-yellow" /> Job Category
+                </label>
+                <div className="relative">
+                    <select
+                        required
+                        className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/10 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-sm"
+                        value={data.category}
+                        onChange={e => setData({ ...data, category: e.target.value })}
+                    >
+                        <option value="Information Technology (IT)">Information Technology (IT)</option>
+                        <option value="Pharmaceutical & Healthcare">Pharmaceutical & Healthcare</option>
+                        <option value="Pharmacy & Clinical Operations">Pharmacy & Clinical Operations</option>
+                        <option value="Finance & Accounting">Finance & Accounting</option>
+                        <option value="Human Resources (HR)">Human Resources (HR)</option>
+                        <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
+                        <option value="Sales & Marketing">Sales & Marketing</option>
+                        <option value="Engineering & Maintenance">Engineering & Maintenance</option>
+                        <option value="Quality Assurance & Control">Quality Assurance & Control</option>
+                        <option value="Administrative & Management">Administrative & Management</option>
+                        <option value="Customer Service & Front Office">Customer Service & Front Office</option>
+                    </select>
+                    <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2.5">
+                    <Activity className="w-4 h-4 text-brand-yellow" /> Description
                 </label>
                 <textarea
                     rows="5" required
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-6 font-bold text-xs leading-relaxed uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 shadow-inner "
-                    placeholder="RECRUITMENT NEEDS..."
+                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl p-6 font-bold text-sm leading-relaxed tracking-wide transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/10 focus:outline-none text-gray-900 shadow-sm "
+                    placeholder="Describe the recruitment needs..."
                     value={data.description}
                     onChange={e => setData({ ...data, description: e.target.value })}
                 />
@@ -336,25 +389,31 @@ const ManagerPortal = () => {
                     >
                         {/* Statistics Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                            <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-8 flex flex-col group hover:bg-white hover:border-brand-yellow hover:shadow-xl hover:shadow-brand-yellow/5 transition-all">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-4 group-hover:text-brand-yellow transition-colors ">Total Requests</span>
+                            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex flex-col group hover:border-brand-yellow hover:shadow-2xl hover:shadow-brand-yellow/5 transition-all duration-500">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 group-hover:text-brand-yellow transition-colors">Total Requests</span>
                                 <div className="flex items-end justify-between">
-                                    <span className="text-3xl font-bold text-gray-900 ">{requisitions.filter(r => r.status !== 'rejected').length}</span>
-                                    <Zap className="w-5 h-5 text-gray-200 group-hover:text-brand-yellow transition-colors" />
+                                    <span className="text-4xl font-bold text-gray-900 tracking-tighter">{requisitions.filter(r => r.status !== 'rejected').length}</span>
+                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow/10 transition-colors">
+                                        <Zap className="w-6 h-6 text-gray-300 group-hover:text-brand-yellow transition-colors" />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-8 flex flex-col group hover:bg-white hover:border-brand-yellow hover:shadow-xl hover:shadow-brand-yellow/5 transition-all">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-4 group-hover:text-brand-yellow transition-colors ">Applicants</span>
+                            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex flex-col group hover:border-brand-yellow hover:shadow-2xl hover:shadow-brand-yellow/5 transition-all duration-500">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 group-hover:text-brand-yellow transition-colors">Total Applicants</span>
                                 <div className="flex items-end justify-between">
-                                    <span className="text-4xl font-bold text-gray-900 ">{requisitions.reduce((acc, r) => acc + (r.total_applications || 0), 0)}</span>
-                                    <Users className="w-6 h-6 text-gray-200 group-hover:text-brand-yellow transition-colors" />
+                                    <span className="text-4xl font-bold text-gray-900 tracking-tighter">{requisitions.reduce((acc, r) => acc + (r.total_applications || 0), 0)}</span>
+                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow/10 transition-colors">
+                                        <Users className="w-6 h-6 text-gray-300 group-hover:text-brand-yellow transition-colors" />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-8 flex flex-col group hover:bg-white hover:border-brand-yellow hover:shadow-xl hover:shadow-brand-yellow/5 transition-all">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-4 group-hover:text-brand-yellow transition-colors ">Interviews Scheduled</span>
+                            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex flex-col group hover:border-brand-yellow hover:shadow-2xl hover:shadow-brand-yellow/5 transition-all duration-500">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 group-hover:text-brand-yellow transition-colors">Scheduled Interviews</span>
                                 <div className="flex items-end justify-between">
-                                    <span className="text-4xl font-bold text-gray-900 ">{requisitions.reduce((acc, r) => acc + (r.interview_count || 0), 0)}</span>
-                                    <MessageSquare className="w-6 h-6 text-gray-200 group-hover:text-brand-yellow transition-colors" />
+                                    <span className="text-4xl font-bold text-gray-900 tracking-tighter">{requisitions.reduce((acc, r) => acc + (r.interview_count || 0), 0)}</span>
+                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow/10 transition-colors">
+                                        <MessageSquare className="w-6 h-6 text-gray-300 group-hover:text-brand-yellow transition-colors" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -428,7 +487,7 @@ const ManagerPortal = () => {
                                                                 </div>
                                                             </td>
                                                             <td className="px-10 py-6">
-                                                                <div className={`inline-flex px-3 py-1.5 rounded-lg border text-[8px] font-bold uppercase tracking-wider  ${getStatusColor(req.status)}`}>
+                                                                <div className={`inline-flex px-3 py-1.5 rounded-xl border text-[9px] font-bold tracking-tight ${getStatusColor(req.status)}`}>
                                                                     {getStatusLabel(req.status)}
                                                                 </div>
                                                             </td>

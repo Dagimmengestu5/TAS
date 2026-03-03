@@ -15,7 +15,7 @@ const MainLayout = ({ children }) => {
     const privilegedRoles = ['admin', 'ta_team', 'hiring_manager', 'hr_approver', 'ceo_approver'];
     const hasPrivilegedAccess = privilegedRoles.includes(user?.role?.name);
 
-    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+    const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/enter-otp'].includes(location.pathname);
     const isLandingPage = location.pathname === '/' || location.pathname === '/jobs';
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);

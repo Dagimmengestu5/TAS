@@ -65,54 +65,66 @@ class ApplicationController extends Controller
         $initialFeedback = 'Initial application synchronization.';
 
         $profBgStr = strtolower($request->professional_background ?? '');
+        $eduStr = strtolower($request->institution_name ?? '');
+        $candidateContext = $profBgStr . ' ' . $eduStr;
+
         $job->loadMissing('requisition.department');
-        
         $jobTitleStr = strtolower($job->title ?? $job->requisition->title ?? '');
-        $jobTagsStr = strtolower($job->tags ?? $job->requisition->category ?? '');
+        $jobCategory = strtolower($job->requisition->category ?? '');
         $deptStr = strtolower($job->requisition->department->name ?? '');
+        $jobContext = $jobTitleStr . ' ' . $jobCategory . ' ' . $deptStr;
 
-        // Extract words longer than 2 characters from candidate background
-        preg_match_all('/\b\w{2,}\b/', $profBgStr, $bgMatches);
-        $candidateWords = array_unique($bgMatches[0]);
-
-        // Define Category Keywords Dictionary
+        // Define Detailed Category Keywords Dictionary
         $categoryKeywords = [
-            'it' => ['computer', 'science', 'developer', 'software', 'engineering', 'programmer', 'coder', 'system', 'network', 'data', 'web', 'mobile', 'frontend', 'backend', 'fullstack', 'security', 'tech'],
-            'tech' => ['computer', 'science', 'developer', 'software', 'engineering', 'programmer', 'coder', 'system', 'network', 'data', 'web', 'mobile', 'frontend', 'backend', 'fullstack', 'security', 'tech'],
-            'health' => ['pharmacy', 'nursing', 'doctor', 'medical', 'healthcare', 'clinical', 'surgeon', 'dentist', 'physician', 'nurse', 'pharmacist', 'lab'],
-            'medical' => ['pharmacy', 'nursing', 'doctor', 'medical', 'healthcare', 'clinical', 'surgeon', 'dentist', 'physician', 'nurse', 'pharmacist', 'lab'],
-            'operations' => ['management', 'administration', 'hr', 'finance', 'business', 'logistics', 'supply', 'coordinator'],
-            'admin' => ['management', 'administration', 'hr', 'finance', 'business', 'logistics', 'supply', 'coordinator'],
+            'information technology (it)' => ['computer', 'science', 'developer', 'software', 'engineering', 'programmer', 'coder', 'system', 'network', 'data', 'web', 'mobile', 'frontend', 'backend', 'fullstack', 'security', 'it', 'tech', 'computing'],
+            'pharmaceutical & healthcare' => ['pharmacy', 'nursing', 'doctor', 'medical', 'healthcare', 'clinical', 'surgeon', 'dentist', 'physician', 'nurse', 'pharmacist', 'hospital'],
+            'pharmacy & clinical operations' => ['pharmacy', 'clinical', 'drug', 'medicine', 'dispensing', 'healthcare', 'pharmacist', 'lab', 'laboratory'],
+            'finance & accounting' => ['accounting', 'accountant', 'finance', 'financial', 'audit', 'auditor', 'tax', 'banking', 'economics', 'commerce', 'cpa', 'acca'],
+            'human resources (hr)' => ['human resources', 'hr', 'recruitment', 'training', 'payroll', 'personnel', 'hiring', 'talent'],
+            'logistics & supply chain' => ['logistics', 'supply chain', 'warehouse', 'distribution', 'inventory', 'transport', 'shipping', 'procurement', 'fleet'],
+            'sales & marketing' => ['sales', 'marketing', 'branding', 'promotion', 'advertisement', 'customer relation', 'merchandising'],
+            'engineering & maintenance' => ['engineering', 'mechanic', 'electrical', 'civil', 'maintenance', 'technician', 'industrial'],
+            'quality assurance & control' => ['quality', 'qa', 'qc', 'standards', 'inspection', 'testing', 'compliance'],
+            'administrative & management' => ['management', 'administration', 'admin', 'secretary', 'office', 'coordinator', 'executive'],
+            'customer service & front office' => ['customer service', 'front office', 'reception', 'support', 'helpdesk', 'client'],
         ];
 
-        // Combine all job-related text and extract words
-        $allJobText = strtolower($jobTitleStr . ' ' . $jobTagsStr . ' ' . $deptStr);
-        
-        // Find relevant category from job context
-        $matchedCategoryKeywords = [];
+        // 1. Identify the target keywords for the job's category
+        $targetKeywords = [];
         foreach ($categoryKeywords as $cat => $keywords) {
-            if (str_contains($allJobText, $cat)) {
-                $matchedCategoryKeywords = array_merge($matchedCategoryKeywords, $keywords);
+            if (str_contains($jobCategory, $cat) || str_contains(strtolower($cat), $jobCategory)) {
+                $targetKeywords = array_merge($targetKeywords, $keywords);
             }
         }
 
-        preg_match_all('/\b\w{2,}\b/', $allJobText, $jobMatches);
-        $jobWords = array_unique(array_merge($jobMatches[0], $matchedCategoryKeywords));
+        // If no category match, fall back to general job context words
+        if (empty($targetKeywords)) {
+            preg_match_all('/\b\w{2,}\b/', $jobContext, $jobMatches);
+            $targetKeywords = array_unique($jobMatches[0]);
+        }
 
-        // Check for any intersection
+        // 2. Check for intersection with candidate's context
+        preg_match_all('/\b\w{2,}\b/', $candidateContext, $candMatches);
+        $candidateWords = array_unique($candMatches[0]);
+
         $hasIntersection = false;
-        if (count($candidateWords) > 0 && count($jobWords) > 0) {
-            $intersection = array_intersect($candidateWords, $jobWords);
+        if (count($candidateWords) > 0 && count($targetKeywords) > 0) {
+            $intersection = array_intersect($candidateWords, $targetKeywords);
             if (count($intersection) > 0) {
                 $hasIntersection = true;
             }
         }
 
-        // If candidate provided background but it has zero overlap with job context, auto-pool them
-        if (!empty($profBgStr) && !$hasIntersection) {
+        // 3. Routing Logic: If candidate provided info but zero overlap with category/job, auto-pool
+        if (!empty(trim($candidateContext)) && !$hasIntersection) {
             $initialStatus = 'pooled';
-            $initialFeedback = 'Auto-routed to Candidate Pool due to professional background mismatch.';
-            \Illuminate\Support\Facades\Log::info('Candidate auto-pooled', ['candidate_id' => $candidate->id, 'job_id' => $job->id, 'bg' => $profBgStr, 'job_context' => $allJobText]);
+            $initialFeedback = 'Auto-routed to Candidate Pool: Background/Education does not match job category (' . ($job->requisition->category ?? 'Unknown') . ').';
+            \Illuminate\Support\Facades\Log::info('Candidate auto-pooled', [
+                'candidate_id' => $candidate->id, 
+                'job_id' => $job->id, 
+                'candidate_context' => $candidateContext,
+                'category' => $jobCategory
+            ]);
         }
 
 
@@ -120,6 +132,7 @@ class ApplicationController extends Controller
             'job_posting_id' => $job->id,
             'candidate_id' => $candidate->id,
             'status' => $initialStatus,
+            'description' => $request->description,
         ]);
 
         // Record initial status history
@@ -152,10 +165,30 @@ class ApplicationController extends Controller
             }])->where('candidate_id', $candidate->id)->get());
         }
 
-        // Otherwise (Admin/TA), show all applications
-        return response()->json(Application::with(['jobPosting.requisition', 'candidate', 'histories' => function($q) {
-            $q->with('user')->latest();
-        }])->get());
+        // Admin and CEO approver can see all applications
+        $globalRoles = ['admin', 'ceo_approver'];
+        if ($user->role && in_array($user->role->name, $globalRoles)) {
+            return response()->json(Application::with(['jobPosting.requisition', 'candidate', 'histories' => function($q) {
+                $q->with('user')->latest();
+            }])->get());
+        }
+
+        // TA Team and others: scope by their own company's job postings
+        $companyId = $user->company_id;
+        if (!$companyId) {
+            // If no company assigned, return empty to be safe
+            return response()->json([]);
+        }
+
+        return response()->json(
+            Application::with(['jobPosting.requisition', 'candidate', 'histories' => function($q) {
+                $q->with('user')->latest();
+            }])
+            ->whereHas('jobPosting.requisition', function($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })
+            ->get()
+        );
     }
 
     public function updateStatus(Request $request, Application $application)

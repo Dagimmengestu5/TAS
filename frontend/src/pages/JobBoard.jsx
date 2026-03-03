@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Clock, Filter, Briefcase, ChevronRight, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Clock, Filter, Briefcase, ChevronRight, ArrowRight, Target } from 'lucide-react';
 import api from '../api/api';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -100,6 +100,13 @@ const JobBoard = () => {
                                         {job.is_internal ? 'Internal' : 'External'}
                                     </span>
                                 </div>
+                                {(job.category || job.requisition?.category) && (
+                                    <div className="flex mb-4">
+                                        <span className="px-2.5 py-1 bg-yellow-400 text-[8px] font-bold text-black uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm">
+                                            <Target className="w-3 h-3" /> {job.category || job.requisition?.category}
+                                        </span>
+                                    </div>
+                                )}
                                 <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight group-hover:text-black transition-colors">{job.title || job.requisition?.title}</h3>
                                 <p className="text-gray-400 text-[10px] mb-8 flex items-center gap-2 font-bold uppercase tracking-wider">
                                     <MapPin className="w-3.5 h-3.5 text-yellow-500" /> {job.requisition?.department?.name || 'Droga Unit'}

@@ -119,8 +119,8 @@ const UserProfile = () => {
                                     {[
                                         { icon: User, label: 'Node Identifier', val: user?.name, desc: 'Primary identity string.' },
                                         { icon: Mail, label: 'Gateway uplink', val: user?.email, desc: 'Primary transmission uplink.' },
-                                        ...(user?.role?.name !== 'candidate' ? [
-                                            { icon: Globe, label: 'Operational Hub', val: user?.company?.name || 'Generic Central', desc: 'Assigned corporate node.' },
+                                        ...(['admin', 'ta_team', 'hiring_manager', 'hr_approver', 'ceo_approver'].includes(user?.role?.name) ? [
+                                            { icon: Globe, label: 'Operational Hub', val: user?.company?.name || 'Unassigned', desc: 'Assigned corporate node.' },
                                             { icon: LayoutGrid, label: 'Unit Node', val: user?.department?.name || 'General Operations', desc: 'Primary structural unit.' }
                                         ] : []),
                                         { icon: Shield, label: 'Access Protocol', val: user?.role?.name, desc: 'Authorization vector clearance.' }

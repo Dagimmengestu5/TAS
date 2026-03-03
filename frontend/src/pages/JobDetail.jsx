@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Clock, Briefcase, ChevronLeft, Send, CheckCircle, FileText, Globe, Zap, ArrowRight, ShieldCheck, X, GraduationCap, Award, Home } from 'lucide-react';
+import { MapPin, Clock, Briefcase, ChevronLeft, Send, CheckCircle, FileText, Globe, Zap, ArrowRight, ShieldCheck, X, GraduationCap, Award, Home, Target } from 'lucide-react';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,6 +26,7 @@ const JobDetail = () => {
         institution_name: '',
         cgpa: '',
         current_address: '',
+        description: '',
     });
     const [cvFile, setCvFile] = useState(null);
 
@@ -154,6 +155,14 @@ const JobDetail = () => {
                             <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-8 leading-[1.1] uppercase">
                                 {job.title || job.requisition.title}
                             </h1>
+
+                            {(job.category || job.requisition?.category) && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    <span className="px-4 py-1.5 bg-brand-yellow text-[9px] font-bold text-black uppercase tracking-wider rounded-lg border border-brand-yellow/30 flex items-center gap-2.5 shadow-sm">
+                                        <Target className="w-3.5 h-3.5" /> {job.category || job.requisition?.category}
+                                    </span>
+                                </div>
+                            )}
 
                             {job.tags && (
                                 <div className="flex flex-wrap gap-2 mb-10">
@@ -428,15 +437,40 @@ const JobDetail = () => {
                                         </div>
                                     </div>
 
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-xs font-semibold text-gray-700 ml-1">Professional Background</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                className="bg-gray-50/50 border border-gray-100 rounded-xl px-5 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-400/10 focus:border-yellow-400 transition-all font-bold"
+                                                value={formData.professional_background}
+                                                onChange={(e) => setFormData({ ...formData, professional_background: e.target.value })}
+                                                placeholder="e.g. Software Engineer, Pharmacist"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-xs font-semibold text-gray-700 ml-1">Contact Phone</label>
+                                            <input
+                                                required
+                                                type="tel"
+                                                className="bg-gray-50/50 border border-gray-100 rounded-xl px-5 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-400/10 focus:border-yellow-400 transition-all"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                placeholder="+251..."
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-xs font-semibold text-gray-700 ml-1">Professional Background</label>
+                                        <label className="text-xs font-semibold text-gray-700 ml-1">Why are you suitable for this role?</label>
                                         <textarea
                                             required
                                             rows="4"
-                                            className="bg-gray-50/50 border border-gray-100 rounded-xl px-5 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-400/10 focus:border-yellow-400 transition-all resize-none"
-                                            value={formData.professional_background}
-                                            onChange={(e) => setFormData({ ...formData, professional_background: e.target.value })}
-                                            placeholder="Briefly describe your professional experience and skills..."
+                                            className="bg-gray-50/50 border border-gray-100 rounded-xl px-5 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-400/10 focus:border-yellow-400 transition-all resize-none leading-relaxed"
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            placeholder="Describe your specific experience and achievements that align with this job..."
                                         ></textarea>
                                     </div>
 
@@ -446,7 +480,16 @@ const JobDetail = () => {
                                                 required
                                                 type="file"
                                                 accept=".pdf"
-                                                onChange={(e) => setCvFile(e.target.files[0])}
+                                                onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    if (file && !file.name.toLowerCase().endsWith('.pdf')) {
+                                                        alert('Critical: Only PDF transmission is supported. Please select a .pdf file.');
+                                                        e.target.value = null;
+                                                        setCvFile(null);
+                                                        return;
+                                                    }
+                                                    setCvFile(file);
+                                                }}
                                                 className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                             />
                                             <div className="bg-gray-50/50 border-2 border-dashed border-gray-100 rounded-2xl px-6 py-8 text-center group-hover:border-yellow-400/50 transition-all duration-300">
@@ -454,7 +497,7 @@ const JobDetail = () => {
                                                     <FileText className="w-6 h-6" />
                                                 </div>
                                                 <span className="text-xs font-semibold text-gray-500">
-                                                    {cvFile ? cvFile.name : 'Click or drag resume to upload'}
+                                                    {cvFile ? cvFile.name : 'Click or drag resume (PDF ONLY)'}
                                                 </span>
                                             </div>
                                         </div>

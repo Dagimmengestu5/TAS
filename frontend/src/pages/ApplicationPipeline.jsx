@@ -12,6 +12,9 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
     const [showFilterDropdown, setShowFilterDropdown] = useState(false);
     const [filterJobTitle, setFilterJobTitle] = useState('all');
     const [showJobFilterDropdown, setShowJobFilterDropdown] = useState(false);
+    const [filterCategory, setFilterCategory] = useState('all');
+    const [showCategoryFilterDropdown, setShowCategoryFilterDropdown] = useState(false);
+    const [filterProfBackground, setFilterProfBackground] = useState('');
 
     // Status Update State
     const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -52,13 +55,23 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
         const matchesStatus = filterStatus === 'all' || (app.status?.toLowerCase() || '') === filterStatus;
         const matchesJob = filterJobTitle === 'all' || req.title === filterJobTitle;
 
-        return matchesSearch && matchesStatus && matchesJob;
+        const jobCategory = jobPost.category || req.category || '';
+        const matchesCategory = filterCategory === 'all' || jobCategory === filterCategory;
+        const matchesProfBackground = !filterProfBackground || (cand.professional_background?.toLowerCase() || '').includes(filterProfBackground.toLowerCase());
+
+        return matchesSearch && matchesStatus && matchesJob && matchesCategory && matchesProfBackground;
     });
 
     // Unique job titles for filter
     const uniqueJobTitles = [...new Set(
         applications
             .map(a => a.job_posting?.requisition?.title)
+            .filter(Boolean)
+    )].sort();
+
+    const uniqueCategories = [...new Set(
+        applications
+            .map(a => a.job_posting?.category || a.job_posting?.requisition?.category)
             .filter(Boolean)
     )].sort();
 
@@ -210,7 +223,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                     {/* Job Title Filter */}
                     <div className="relative">
                         <button
-                            onClick={() => { setShowJobFilterDropdown(!showJobFilterDropdown); setShowFilterDropdown(false); }}
+                            onClick={() => { setShowJobFilterDropdown(!showJobFilterDropdown); setShowFilterDropdown(false); setShowCategoryFilterDropdown(false); }}
                             className="flex items-center gap-3 bg-white border border-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-wider hover:border-brand-yellow hover:text-gray-900 transition-all  rounded-xl group"
                         >
                             <Briefcase className="w-4 h-4 text-gray-400 group-hover:text-brand-yellow transition-colors" />
@@ -249,6 +262,70 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                 </motion.div>
                             )}
                         </AnimatePresence>
+                    </div>
+
+                    {/* Category Filter */}
+                    <div className="relative">
+                        <button
+                            onClick={() => { setShowCategoryFilterDropdown(!showCategoryFilterDropdown); setShowFilterDropdown(false); setShowJobFilterDropdown(false); }}
+                            className="flex items-center gap-3 bg-white border border-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-wider hover:border-brand-yellow hover:text-gray-900 transition-all  rounded-xl group"
+                        >
+                            <Target className="w-4 h-4 text-gray-400 group-hover:text-brand-yellow transition-colors" />
+                            {filterCategory === 'all' ? 'Category' : filterCategory}
+                            <ChevronDown className={`w-3 h-3 transition-transform ${showCategoryFilterDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {showCategoryFilterDropdown && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    className="absolute right-0 mt-3 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                                >
+                                    <div className="p-2.5 space-y-1 max-h-64 overflow-y-auto">
+                                        <button
+                                            onClick={() => { setFilterCategory('all'); setShowCategoryFilterDropdown(false); }}
+                                            className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-colors  ${filterCategory === 'all' ? 'bg-brand-yellow text-black' : 'hover:bg-gray-50 text-gray-500'}`}
+                                        >
+                                            All Categories
+                                        </button>
+                                        <div className="h-px bg-gray-50 my-1 mx-2"></div>
+                                        {uniqueCategories.length === 0 ? (
+                                            <p className="text-[9px] text-gray-300  px-4 py-2">No categories found</p>
+                                        ) : uniqueCategories.map(cat => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => { setFilterCategory(cat); setShowCategoryFilterDropdown(false); }}
+                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors  rounded-xl ${filterCategory === cat ? 'bg-brand-yellow text-black shadow-md' : 'hover:bg-gray-50 text-gray-600'}`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Professional Background Search Filter */}
+                    <div className="relative flex-1 max-w-[200px]">
+                        <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                        <input
+                            type="text"
+                            placeholder="Filter by Background..."
+                            value={filterProfBackground}
+                            onChange={(e) => setFilterProfBackground(e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-[10px] font-bold uppercase tracking-wider focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow outline-none transition-all"
+                        />
+                        {filterProfBackground && (
+                            <button
+                                onClick={() => setFilterProfBackground('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

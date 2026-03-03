@@ -27,6 +27,7 @@ const JobConsole = () => {
         title: '',
         description: '',
         tags: '',
+        category: '',
         location: '',
         employment_type: '',
         is_internal: true,
@@ -94,7 +95,8 @@ const JobConsole = () => {
                 description: req.description,
                 location: req.location || '',
                 employment_type: req.employment_type || '',
-                tags: req.category || ''
+                tags: req.category || '',
+                category: req.category || ''
             });
         } else {
             setFormData({ ...formData, job_requisition_id: id });
@@ -108,6 +110,7 @@ const JobConsole = () => {
             title: job.title || '',
             description: job.description || '',
             tags: job.tags || '',
+            category: job.category || '',
             location: job.location || '',
             employment_type: job.employment_type || '',
             is_internal: !!job.is_internal,
@@ -161,6 +164,7 @@ const JobConsole = () => {
             title: '',
             description: '',
             tags: '',
+            category: '',
             location: '',
             employment_type: '',
             is_internal: true,
@@ -406,6 +410,27 @@ const JobConsole = () => {
                                             <option value="Freelance">Freelance</option>
                                             <option value="Remote">Remote</option>
                                             <option value="Hybrid">Hybrid</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Job Category</label>
+                                        <select
+                                            value={formData.category}
+                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-8 py-4 text-[11px] font-bold focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow outline-none transition-all  appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px_10px] bg-[right_1.5rem_center] bg-no-repeat"
+                                        >
+                                            <option value="">Select Category</option>
+                                            <option value="Information Technology (IT)">Information Technology (IT)</option>
+                                            <option value="Pharmaceutical & Healthcare">Pharmaceutical & Healthcare</option>
+                                            <option value="Pharmacy & Clinical Operations">Pharmacy & Clinical Operations</option>
+                                            <option value="Finance & Accounting">Finance & Accounting</option>
+                                            <option value="Human Resources (HR)">Human Resources (HR)</option>
+                                            <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
+                                            <option value="Sales & Marketing">Sales & Marketing</option>
+                                            <option value="Engineering & Maintenance">Engineering & Maintenance</option>
+                                            <option value="Quality Assurance & Control">Quality Assurance & Control</option>
+                                            <option value="Administrative & Management">Administrative & Management</option>
+                                            <option value="Customer Service & Front Office">Customer Service & Front Office</option>
                                         </select>
                                     </div>
                                     <div className="space-y-3">
