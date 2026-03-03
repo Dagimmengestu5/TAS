@@ -68,11 +68,6 @@ button {
   user-select: none;
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
-}
-
 /* Custom Utilities for tactical UI */
 .tracking-tactical {
   letter-spacing: 0.5em;
