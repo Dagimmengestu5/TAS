@@ -53,7 +53,7 @@ const VerifyEmail = () => {
                             <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Verifying Node</h1>
-                        <p className="text-sm text-gray-400 font-medium leading-relaxed uppercase tracking-widest text-[10px]">
+                        <p className="text-sm text-gray-400 font-medium leading-relaxed uppercase tracking-wider text-[10px]">
                             Synchronizing your email identity with the Droga OS core...
                         </p>
                     </div>
@@ -65,12 +65,12 @@ const VerifyEmail = () => {
                             <CheckCircle className="w-8 h-8 text-green-500" />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Uplink Active</h1>
-                        <p className="text-sm text-gray-500 font-medium leading-relaxed italic">
+                        <p className="text-sm text-gray-500 font-medium leading-relaxed ">
                             {message}
                         </p>
                         <Link
                             to="/profile"
-                            className="mt-4 w-full bg-black text-white py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2 group"
+                            className="mt-4 w-full bg-black text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2 group"
                         >
                             Return to Profile <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -83,19 +83,19 @@ const VerifyEmail = () => {
                             <XCircle className="w-8 h-8 text-red-500" />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Sync Failed</h1>
-                        <p className="text-sm text-red-500/70 font-medium leading-relaxed italic">
+                        <p className="text-sm text-red-500/70 font-medium leading-relaxed ">
                             {message}
                         </p>
                         <div className="w-full flex flex-col gap-3 mt-4">
                             <Link
                                 to="/profile"
-                                className="w-full bg-gray-50 text-gray-500 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all"
+                                className="w-full bg-gray-50 text-gray-500 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-gray-100 transition-all"
                             >
                                 Back to Profile
                             </Link>
                             <Link
                                 to="/login"
-                                className="w-full bg-black text-white py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-yellow-400 hover:text-black transition-all shadow-lg shadow-black/5"
+                                className="w-full bg-black text-white py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-all shadow-lg shadow-black/5"
                             >
                                 Re-authenticate
                             </Link>

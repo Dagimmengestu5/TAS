@@ -49,6 +49,13 @@ const EnterOtp = () => {
         }
     };
 
+    useEffect(() => {
+        if (location.state?.autoSend && email) {
+            handleResend();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleChange = (element, index) => {
         if (isNaN(element.value)) return false;
 
@@ -106,13 +113,13 @@ const EnterOtp = () => {
                         <KeyRound className="w-8 h-8 text-yellow-600" />
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 tracking-tight uppercase">Enter Security Code</h1>
-                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mt-3 leading-relaxed">
-                        We dispatched a 6-digit confirmation code to <span className="text-black">{getMaskedEmail(email)}</span>.<br /> sent email in this email chekc your email.
+                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mt-3 leading-relaxed">
+                        We dispatched a 6-digit confirmation code to <span className="text-black">{getMaskedEmail(email)}</span>.<br /> Please check your email inbox.
                     </p>
                 </div>
 
                 {error && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl text-[10px] font-bold uppercase tracking-wider">
                         {error}
                     </motion.div>
                 )}
@@ -138,7 +145,7 @@ const EnterOtp = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-black text-white py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/5 disabled:opacity-70"
+                        className="w-full bg-black text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/5 disabled:opacity-70"
                     >
                         {loading ? (
                             <>
@@ -153,10 +160,10 @@ const EnterOtp = () => {
                 </form>
 
                 <div className="mt-8 pt-6 border-t border-gray-50 flex flex-col items-center gap-2 relative z-10">
-                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Didn't receive the code?</p>
+                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Didn't receive the code?</p>
                     <button
                         onClick={handleResend}
-                        className="text-[10px] font-bold text-black border-b border-yellow-400 hover:text-yellow-600 transition-colors uppercase tracking-widest"
+                        className="text-[10px] font-bold text-black border-b border-yellow-400 hover:text-yellow-600 transition-colors uppercase tracking-wider"
                     >
                         Resend Code
                     </button>

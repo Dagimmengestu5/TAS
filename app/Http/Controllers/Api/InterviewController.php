@@ -25,8 +25,35 @@ class InterviewController extends Controller
         ]);
 
         $interview = Interview::create($request->all());
+        
+        // Eager load everything needed for notifications
+        $interview->load(['application.candidate', 'application.jobPosting.requisition.user']);
+        
+        $application = $interview->application;
+        $scheduledAtStr = \Carbon\Carbon::parse($interview->scheduled_at)->format('F j, Y, g:i a');
+        $feedback = "Interview scheduled for {$scheduledAtStr} at {$request->location}. Notes: {$request->notes}";
 
-        return response()->json($interview->load('application.candidate'), 201);
+        // Update application status to match the interview node
+        $newStatus = str_contains(strtolower($request->type), '2') ? 'interview_2' : 'interview_1';
+        $application->update(['status' => $newStatus, 'feedback' => $feedback]);
+
+        // Record history
+        $application->histories()->create([
+            'status' => $newStatus,
+            'feedback' => $feedback,
+            'user_id' => $request->user()->id,
+        ]);
+
+        // Notify Candidate
+        $application->candidate->notify(new \App\Notifications\InterviewScheduled($interview));
+
+        // Notify Requester (Hiring Manager)
+        $requester = $application->jobPosting?->requisition?->user;
+        if ($requester) {
+            $requester->notify(new \App\Notifications\InterviewScheduled($interview, true));
+        }
+
+        return response()->json($application->load(['candidate', 'jobPosting.requisition', 'histories.user']), 201);
     }
 
     public function update(Request $request, Interview $interview)

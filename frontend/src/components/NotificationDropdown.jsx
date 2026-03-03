@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, X, Check, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api';
@@ -9,6 +10,7 @@ const NotificationDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
     const dropdownRef = useRef(null);
 
     const fetchNotifications = async () => {
@@ -69,7 +71,7 @@ const NotificationDropdown = () => {
             >
                 <Bell className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-yellow text-[10px] font-black text-gray-900 border-2 border-white shadow-sm animate-bounce-slow">
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-yellow text-xs font-bold text-gray-900 border-2 border-white shadow-sm animate-bounce-slow">
                         {unreadCount}
                     </span>
                 )}
@@ -84,12 +86,12 @@ const NotificationDropdown = () => {
                         className="absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
                     >
                         <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
-                            <h3 className="text-xs font-black uppercase tracking-widest text-gray-900 flex items-center gap-2 italic">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 flex items-center gap-2">
                                 <div className="w-1.5 h-4 bg-brand-yellow rounded-full"></div> Node Notifications
                             </h3>
                             <button
                                 onClick={handleMarkAllRead}
-                                className="text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-yellow transition-colors italic"
+                                className="text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-brand-yellow transition-colors"
                             >
                                 Clear All
                             </button>
@@ -99,31 +101,35 @@ const NotificationDropdown = () => {
                             {loading && notifications.length === 0 ? (
                                 <div className="p-8 text-center">
                                     <div className="w-6 h-6 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">Scanning Grid...</p>
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Scanning Grid...</p>
                                 </div>
                             ) : notifications.length === 0 ? (
                                 <div className="p-12 text-center">
                                     <Bell className="w-8 h-8 text-gray-100 mx-auto mb-3" />
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic leading-relaxed">No active signals detected in the transmission grid.</p>
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider leading-relaxed">No active signals detected in the transmission grid.</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-gray-50">
                                     {notifications.map((notification) => (
                                         <div
                                             key={notification.id}
-                                            onClick={() => handleMarkAsRead(notification.id)}
+                                            onClick={() => {
+                                                handleMarkAsRead(notification.id);
+                                                setIsOpen(false);
+                                                navigate(`/notifications/${notification.id}`);
+                                            }}
                                             className="p-4 hover:bg-gray-50/80 cursor-pointer transition-all group border-l-4 border-transparent hover:border-brand-yellow"
                                         >
                                             <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-tight italic leading-none truncate pr-4">
+                                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-tight leading-none truncate pr-4">
                                                     {notification.data.title || 'System Notification'}
                                                 </h4>
-                                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter whitespace-nowrap flex items-center gap-1 italic">
-                                                    <Clock className="w-2.5 h-2.5" />
+                                                <span className="text-[10px] font-semibold text-gray-400 uppercase  whitespace-nowrap flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
                                                     {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-gray-500 font-medium leading-relaxed italic line-clamp-2 uppercase tracking-wide">
+                                            <p className="text-xs text-gray-500 font-medium leading-relaxed line-clamp-2 uppercase tracking-wide">
                                                 {notification.data.message || 'Transmission received at terminal.'}
                                             </p>
                                         </div>
@@ -133,7 +139,7 @@ const NotificationDropdown = () => {
                         </div>
 
                         <div className="p-3 border-t border-gray-50 bg-gray-50/50 text-center">
-                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 italic">Ecosystem Encryption Active</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Ecosystem Encryption Active</span>
                         </div>
                     </motion.div>
                 )}

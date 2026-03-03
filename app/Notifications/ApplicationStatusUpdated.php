@@ -13,14 +13,16 @@ class ApplicationStatusUpdated extends Notification
 
     protected $application;
     protected $feedback;
+    protected $documentPath;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($application, $feedback = null)
+    public function __construct($application, $feedback = null, $documentPath = null)
     {
         $this->application = $application;
         $this->feedback = $feedback;
+        $this->documentPath = $documentPath;
     }
 
     /**
@@ -56,10 +58,14 @@ class ApplicationStatusUpdated extends Notification
                     ->line('"' . $feedbackToDisplay . '"');
         }
 
-        return $message
-            ->action('View My Application Flow', config('app.frontend_url') . '/profile')
-            ->line('You can monitor the full chronological history of your application nodes in your profile.')
-            ->salutation('Best regards, The Droga Group Talent Acquisition Team');
+        $message->action('View My Application Flow', config('app.frontend_url') . '/profile')
+            ->line('You can monitor the full chronological history of your application nodes in your profile.');
+        
+        if ($this->documentPath) {
+            $message->attach(storage_path('app/public/' . $this->documentPath));
+        }
+
+        return $message->salutation('Best regards, The Droga Group Talent Acquisition Team');
     }
 
     /**

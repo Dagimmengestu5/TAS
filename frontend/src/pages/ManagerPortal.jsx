@@ -80,7 +80,7 @@ const ManagerPortal = () => {
                 setFormData({ title: '', description: '', company_id: '', department_id: '', category: 'Information Technology', location: 'Addis Ababa', employment_type: 'Full-time', jd: null });
             }, 2500);
         } catch (err) {
-            alert('Request submission failed. Check authorization or file size.');
+            alert('Submission failed. Please check your data.');
         } finally {
             setSubmitting(false);
         }
@@ -156,7 +156,7 @@ const ManagerPortal = () => {
 
     const getStatusLabel = (status) => {
         switch (status) {
-            case 'approved': return 'AUTHORIZED';
+            case 'approved': return 'APPROVED';
             case 'rejected': return 'REJECTED';
             case 'pending_hr': return 'PENDING HR';
             case 'pending_ceo': return 'PENDING CEO';
@@ -165,15 +165,15 @@ const ManagerPortal = () => {
     };
 
     // Shared form fields used by both Create and Edit
-    const RequisitionFormFields = ({ data, setData, isEdit = false }) => (
+    const renderRequisitionFormFields = (data, setData, isEdit = false) => (
         <div className="space-y-10">
             <div className="space-y-4">
-                <label className="text-[9px] font-black text-gray-900 uppercase tracking-widest px-4 flex items-center gap-3 italic">
-                    <FileText className="w-5 h-5 text-brand-yellow" /> Requisition Designation
+                <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
+                    <FileText className="w-5 h-5 text-brand-yellow" /> Role Title
                 </label>
                 <input
                     type="text" required
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-black text-lg uppercase tracking-tight transition-all focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow text-gray-900 placeholder:text-gray-200 shadow-inner italic"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-lg uppercase tracking-tight transition-all focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow text-gray-900 placeholder:text-gray-200 shadow-inner "
                     placeholder="POSITION TITLE"
                     value={data.title}
                     onChange={e => setData({ ...data, title: e.target.value })}
@@ -182,13 +182,13 @@ const ManagerPortal = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                    <label className="text-[9px] font-black text-gray-900 uppercase tracking-widest px-4 flex items-center gap-3 italic">
-                        <Building2 className="w-5 h-5 text-brand-yellow" /> Enterprise Unit
+                    <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
+                        <Building2 className="w-5 h-5 text-brand-yellow" /> Company
                     </label>
                     <div className="relative">
                         <select
                             required
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-black text-[11px] uppercase tracking-widest transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-inner italic"
+                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-inner "
                             value={data.company_id}
                             onChange={e => handleCompanyChange(e.target.value, data, setData)}
                         >
@@ -199,14 +199,14 @@ const ManagerPortal = () => {
                     </div>
                 </div>
                 <div className="space-y-4">
-                    <label className="text-[9px] font-black text-gray-900 uppercase tracking-widest px-4 flex items-center gap-3 italic">
-                        <Target className="w-5 h-5 text-brand-yellow" /> Active Department
+                    <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
+                        <Target className="w-5 h-5 text-brand-yellow" /> Department
                     </label>
                     <div className="relative">
                         <select
                             required
                             disabled={!data.company_id}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-black text-[11px] uppercase tracking-widest transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-inner italic disabled:opacity-50"
+                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-[11px] uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 appearance-none cursor-pointer shadow-inner  disabled:opacity-50"
                             value={data.department_id}
                             onChange={e => setData({ ...data, department_id: e.target.value })}
                         >
@@ -219,9 +219,9 @@ const ManagerPortal = () => {
             </div>
 
             <div className="space-y-4">
-                <label className="text-[9px] font-black text-gray-900 uppercase tracking-widest px-4 flex items-center gap-3 italic">
-                    <ShieldCheck className="w-5 h-5 text-brand-yellow" /> Job Description Matrix (PDF/DOC)
-                    {isEdit && data.existing_jd && <span className="text-[8px] text-green-500 normal-case font-bold ml-1">• Current file exists</span>}
+                <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
+                    <ShieldCheck className="w-5 h-5 text-brand-yellow" /> Job Description (PDF/DOC)
+                    {isEdit && data.existing_jd && <span className="text-[8px] text-green-500 normal-case font-bold ml-1">• File uploaded</span>}
                 </label>
                 <div className="relative group">
                     <input
@@ -231,21 +231,21 @@ const ManagerPortal = () => {
                     />
                     <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all group-hover:border-brand-yellow group-hover:bg-white shadow-inner group-hover:shadow-2xl group-hover:shadow-brand-yellow/10">
                         <PlusCircle className="w-10 h-10 text-gray-200 group-hover:text-brand-yellow mb-3 transition-all group-hover:scale-110" />
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] group-hover:text-gray-900 transition-colors italic">
-                            {data.jd ? data.jd.name : isEdit ? 'Replace JD file (optional)' : 'Synchronize JD File'}
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-900 transition-colors ">
+                            {data.jd ? data.jd.name : isEdit ? 'Replace file (optional)' : 'Upload Job Description'}
                         </p>
                     </div>
                 </div>
             </div>
 
             <div className="space-y-4">
-                <label className="text-[9px] font-black text-gray-900 uppercase tracking-widest px-4 flex items-center gap-3 italic">
-                    <Activity className="w-5 h-5 text-brand-yellow" /> Strategic Narrative
+                <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-4 flex items-center gap-3 ">
+                    <Activity className="w-5 h-5 text-brand-yellow" /> Description
                 </label>
                 <textarea
                     rows="5" required
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-6 font-bold text-xs leading-relaxed uppercase tracking-widest transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 shadow-inner italic"
-                    placeholder="STRATEGIC INTENT..."
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-6 font-bold text-xs leading-relaxed uppercase tracking-wider transition-all focus:bg-white focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none text-gray-900 shadow-inner "
+                    placeholder="RECRUITMENT NEEDS..."
                     value={data.description}
                     onChange={e => setData({ ...data, description: e.target.value })}
                 />
@@ -254,7 +254,7 @@ const ManagerPortal = () => {
     );
 
     return (
-        <div className="bg-white min-h-screen w-full px-8 py-8 md:px-12 font-['Outfit'] selection:bg-brand-yellow/30">
+        <div className="bg-white min-h-screen w-full px-6 py-6 md:px-10  selection:bg-brand-yellow/30">
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
                 {deleteConfirm && (
@@ -271,20 +271,20 @@ const ManagerPortal = () => {
                             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-6 mx-auto border border-red-100">
                                 <AlertTriangle className="w-7 h-7 text-red-500" />
                             </div>
-                            <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tight text-center mb-2">Delete Requisition?</h3>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold text-center italic mb-8 leading-relaxed">
-                                "{deleteConfirm.title}" will be permanently removed from the system.
+                            <h3 className="text-xl font-bold text-gray-900 uppercase  tracking-tight text-center mb-2">Delete Requisition?</h3>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold text-center  mb-8 leading-relaxed">
+                                "{deleteConfirm.title}" will be permanently removed.
                             </p>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setDeleteConfirm(null)}
-                                    className="flex-1 py-4 bg-gray-50 text-gray-400 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-gray-100 transition-all italic border border-gray-100"
+                                    className="flex-1 py-4 bg-gray-50 text-gray-400 rounded-xl font-bold text-[9px] uppercase tracking-wider hover:bg-gray-100 transition-all  border border-gray-100"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={() => handleDelete(deleteConfirm)}
-                                    className="flex-1 py-4 bg-red-500 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-red-600 transition-all italic shadow-lg shadow-red-500/20"
+                                    className="flex-1 py-4 bg-red-500 text-white rounded-xl font-bold text-[9px] uppercase tracking-wider hover:bg-red-600 transition-all  shadow-lg shadow-red-500/20"
                                 >
                                     Confirm Delete
                                 </button>
@@ -297,28 +297,28 @@ const ManagerPortal = () => {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 max-w-[1200px] mx-auto">
                 <div className="flex flex-col">
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase italic leading-none flex items-center gap-4">
-                        <Building2 className="w-8 h-8 text-brand-yellow" />
-                        Manager Hub
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight uppercase  leading-none flex items-center gap-3 ">
+                        <Building2 className="w-7 h-7 text-brand-yellow" />
+                        My Requests
                     </h1>
                     <div className="flex items-center gap-2 mt-2">
                         <div className="w-1.5 h-1.5 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_8px_#FFF200]"></div>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Strategic Requisition Layer</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ">Hiring Manager Portal</span>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => { setView(view === 'HUB' ? 'FORM' : 'HUB'); setEditingReq(null); setSuccess(false); }}
-                        className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all italic border shadow-sm active:scale-95 ${view === 'HUB'
+                        className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all  border shadow-sm active:scale-95 ${view === 'HUB'
                             ? 'bg-gray-900 text-brand-yellow border-gray-800 hover:bg-black'
                             : 'bg-white text-gray-900 border-gray-100 hover:bg-gray-50'
                             }`}
                     >
                         {view === 'HUB' ? (
-                            <><PlusCircle className="w-4 h-4" /> Initialize Request</>
+                            <><PlusCircle className="w-4 h-4" /> New Request</>
                         ) : (
-                            <><History className="w-4 h-4" /> Request History</>
+                            <><History className="w-4 h-4" /> View History</>
                         )}
                     </button>
                 </div>
@@ -337,23 +337,23 @@ const ManagerPortal = () => {
                         {/* Statistics Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                             <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-8 flex flex-col group hover:bg-white hover:border-brand-yellow hover:shadow-xl hover:shadow-brand-yellow/5 transition-all">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 group-hover:text-brand-yellow transition-colors italic">Active Requisitions</span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-4 group-hover:text-brand-yellow transition-colors ">Total Requests</span>
                                 <div className="flex items-end justify-between">
-                                    <span className="text-4xl font-black text-gray-900 italic">{requisitions.filter(r => r.status !== 'rejected').length}</span>
-                                    <Zap className="w-6 h-6 text-gray-200 group-hover:text-brand-yellow transition-colors" />
+                                    <span className="text-3xl font-bold text-gray-900 ">{requisitions.filter(r => r.status !== 'rejected').length}</span>
+                                    <Zap className="w-5 h-5 text-gray-200 group-hover:text-brand-yellow transition-colors" />
                                 </div>
                             </div>
                             <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-8 flex flex-col group hover:bg-white hover:border-brand-yellow hover:shadow-xl hover:shadow-brand-yellow/5 transition-all">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 group-hover:text-brand-yellow transition-colors italic">Candidate Uplink</span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-4 group-hover:text-brand-yellow transition-colors ">Applicants</span>
                                 <div className="flex items-end justify-between">
-                                    <span className="text-4xl font-black text-gray-900 italic">{requisitions.reduce((acc, r) => acc + (r.total_applications || 0), 0)}</span>
+                                    <span className="text-4xl font-bold text-gray-900 ">{requisitions.reduce((acc, r) => acc + (r.total_applications || 0), 0)}</span>
                                     <Users className="w-6 h-6 text-gray-200 group-hover:text-brand-yellow transition-colors" />
                                 </div>
                             </div>
                             <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-8 flex flex-col group hover:bg-white hover:border-brand-yellow hover:shadow-xl hover:shadow-brand-yellow/5 transition-all">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 group-hover:text-brand-yellow transition-colors italic">Interview Status</span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-4 group-hover:text-brand-yellow transition-colors ">Interviews Scheduled</span>
                                 <div className="flex items-end justify-between">
-                                    <span className="text-4xl font-black text-gray-900 italic">{requisitions.reduce((acc, r) => acc + (r.interview_count || 0), 0)}</span>
+                                    <span className="text-4xl font-bold text-gray-900 ">{requisitions.reduce((acc, r) => acc + (r.interview_count || 0), 0)}</span>
                                     <MessageSquare className="w-6 h-6 text-gray-200 group-hover:text-brand-yellow transition-colors" />
                                 </div>
                             </div>
@@ -363,22 +363,22 @@ const ManagerPortal = () => {
                         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
                             <div className="px-10 py-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
                                 <div className="flex items-center gap-4">
-                                    <History className="w-5 h-5 text-brand-yellow" />
-                                    <h2 className="font-black text-[13px] uppercase tracking-widest text-gray-900 italic">Requisition Log</h2>
+                                    <History className="w-4 h-4 text-brand-yellow" />
+                                    <h2 className="font-bold text-[11px] uppercase tracking-wider text-gray-900  ">Request History</h2>
                                 </div>
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest italic">{requisitions.length} ENTRIES</span>
+                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider ">{requisitions.length} ENTRIES</span>
                             </div>
 
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
                                     <thead className="bg-gray-50/50">
                                         <tr>
-                                            <th className="px-10 py-5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic">Designation</th>
-                                            <th className="px-10 py-5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic">Timeline</th>
-                                            <th className="px-10 py-5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic">Auth Status</th>
-                                            <th className="px-10 py-5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic text-center">Applicants</th>
-                                            <th className="px-10 py-5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic text-center">Interviews</th>
-                                            <th className="px-10 py-5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic text-center">Actions</th>
+                                            <th className="px-10 py-5 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Role</th>
+                                            <th className="px-10 py-5 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Timeline</th>
+                                            <th className="px-10 py-5 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Status</th>
+                                            <th className="px-10 py-5 text-[9px] font-bold text-gray-400 uppercase tracking-wider  text-center">Applicants</th>
+                                            <th className="px-10 py-5 text-[9px] font-bold text-gray-400 uppercase tracking-wider  text-center">Interviews</th>
+                                            <th className="px-10 py-5 text-[9px] font-bold text-gray-400 uppercase tracking-wider  text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -387,7 +387,7 @@ const ManagerPortal = () => {
                                                 <td colSpan="6" className="px-10 py-20 text-center">
                                                     <div className="flex flex-col items-center gap-4">
                                                         <div className="w-8 h-8 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
-                                                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">Synchronizing Logs...</span>
+                                                        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider ">Loading...</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -396,7 +396,7 @@ const ManagerPortal = () => {
                                                 <td colSpan="6" className="px-10 py-20 text-center">
                                                     <div className="flex flex-col items-center gap-4">
                                                         <XCircle className="w-10 h-10 text-gray-100" />
-                                                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">No requisition nodes detected.</span>
+                                                        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider ">No requests found.</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -411,34 +411,34 @@ const ManagerPortal = () => {
                                                             exit={{ opacity: 0, x: -20 }}
                                                             className="group hover:bg-gray-50/50 transition-colors"
                                                         >
-                                                            <td className="px-10 py-6">
+                                                            <td className="px-10 py-4">
                                                                 <div className="flex flex-col">
-                                                                    <span className="font-black text-[13px] text-gray-900 uppercase italic tracking-tight mb-1 group-hover:text-brand-yellow transition-colors">{req.title}</span>
+                                                                    <span className="font-bold text-[12px] text-gray-900 uppercase  tracking-tight mb-0.5 group-hover:text-brand-yellow transition-colors ">{req.title}</span>
                                                                     <div className="flex items-center gap-2">
-                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">{req.company?.name || 'N/A'}</span>
+                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider ">{req.company?.name || 'N/A'}</span>
                                                                         <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
-                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">{req.department?.name || 'N/A'}</span>
+                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider ">{req.department?.name || 'N/A'}</span>
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td className="px-10 py-6">
                                                                 <div className="flex items-center gap-2 text-gray-400">
                                                                     <Clock className="w-3 h-3" />
-                                                                    <span className="text-[10px] font-black uppercase tracking-tight italic">{new Date(req.created_at).toLocaleDateString()}</span>
+                                                                    <span className="text-[10px] font-bold uppercase tracking-tight ">{new Date(req.created_at).toLocaleDateString()}</span>
                                                                 </div>
                                                             </td>
                                                             <td className="px-10 py-6">
-                                                                <div className={`inline-flex px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-widest italic ${getStatusColor(req.status)}`}>
+                                                                <div className={`inline-flex px-3 py-1.5 rounded-lg border text-[8px] font-bold uppercase tracking-wider  ${getStatusColor(req.status)}`}>
                                                                     {getStatusLabel(req.status)}
                                                                 </div>
                                                             </td>
                                                             <td className="px-10 py-6 text-center">
-                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-gray-50 text-gray-900 text-[11px] font-black italic border border-gray-100">
+                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-gray-50 text-gray-900 text-[11px] font-bold  border border-gray-100">
                                                                     {req.total_applications || 0}
                                                                 </span>
                                                             </td>
                                                             <td className="px-10 py-6 text-center text-brand-yellow">
-                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-gray-900 border border-gray-800 text-[11px] font-black shadow-lg italic">
+                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-gray-900 border border-gray-800 text-[11px] font-bold shadow-lg ">
                                                                     {req.interview_count || 0}
                                                                 </span>
                                                             </td>
@@ -448,14 +448,14 @@ const ManagerPortal = () => {
                                                                         <>
                                                                             <button
                                                                                 onClick={() => handleEdit(req)}
-                                                                                title="Edit (only while pending HR review)"
+                                                                                title="Edit (only while pending)"
                                                                                 className="w-8 h-8 rounded-lg bg-brand-yellow/10 border border-brand-yellow/20 flex items-center justify-center text-brand-yellow hover:bg-brand-yellow hover:text-black transition-all"
                                                                             >
                                                                                 <Pencil className="w-3.5 h-3.5" />
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => setDeleteConfirm(req)}
-                                                                                title="Delete (only while pending HR review)"
+                                                                                title="Delete (only while pending)"
                                                                                 className="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all"
                                                                             >
                                                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -464,7 +464,7 @@ const ManagerPortal = () => {
                                                                     ) : (
                                                                         <div title="Locked — HR has acted on this requisition" className="flex items-center gap-1.5 text-gray-200">
                                                                             <Lock className="w-3 h-3" />
-                                                                            <span className="text-[7px] font-black uppercase tracking-widest italic">Locked</span>
+                                                                            <span className="text-[7px] font-bold uppercase tracking-wider ">Finalized</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -495,24 +495,24 @@ const ManagerPortal = () => {
                                 <div className="w-20 h-20 bg-gray-900 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl border border-gray-800 animate-bounce">
                                     <Send className="w-8 h-8 text-brand-yellow" />
                                 </div>
-                                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight text-gray-900 italic leading-none">Transmission Complete</h2>
-                                <p className="text-gray-400 font-bold uppercase text-[9px] tracking-widest max-w-sm mx-auto leading-relaxed italic bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-inner">
-                                    Resource packet synchronized with executive authorization pipeline.
+                                <h2 className="text-3xl font-bold mb-4 uppercase tracking-tight text-gray-900  leading-none">Request Submitted</h2>
+                                <p className="text-gray-400 font-bold uppercase text-[9px] tracking-wider max-w-sm mx-auto leading-relaxed  bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-inner">
+                                    Your request has been sent to HR for approval.
                                 </p>
                             </motion.div>
                         ) : (
-                            <form onSubmit={handleSubmit} className="space-y-10 relative z-10 font-['Outfit']">
-                                <RequisitionFormFields data={formData} setData={setFormData} />
+                            <form onSubmit={handleSubmit} className="space-y-10 relative z-10 ">
+                                {renderRequisitionFormFields(formData, setFormData)}
                                 <div className="flex gap-4 pt-6">
                                     <button
                                         type="button" onClick={() => setView('HUB')}
-                                        className="flex-1 py-5 bg-gray-50 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all italic border border-gray-100"
+                                        className="flex-1 py-5 bg-gray-50 text-gray-400 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-gray-100 transition-all  border border-gray-100"
                                     >Abort</button>
                                     <button
                                         type="submit" disabled={submitting}
-                                        className="flex-[2] bg-gray-900 text-brand-yellow py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl border border-gray-800 italic group/btn active:scale-95"
+                                        className="flex-[2] bg-gray-900 text-brand-yellow py-5 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl border border-gray-800  group/btn active:scale-95"
                                     >
-                                        {submitting ? 'SYNCHRONIZING...' : 'EXECUTE INITIALIZATION'} <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                        {submitting ? 'SENDING...' : 'SUBMIT REQUEST'} <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                                     </button>
                                 </div>
                             </form>
@@ -534,8 +534,8 @@ const ManagerPortal = () => {
                                 <Pencil className="w-5 h-5 text-brand-yellow" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-gray-900 uppercase italic tracking-tight">Modify Requisition</h2>
-                                <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest italic">Editable only while Pending HR Review</p>
+                                <h2 className="text-lg font-bold text-gray-900 uppercase  tracking-tight">Modify Requisition</h2>
+                                <p className="text-[8px] font-bold text-amber-500 uppercase tracking-wider ">Editable only while Pending HR Review</p>
                             </div>
                         </div>
 
@@ -544,19 +544,19 @@ const ManagerPortal = () => {
                                 <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl border border-green-100">
                                     <CheckCircle className="w-8 h-8 text-green-500" />
                                 </div>
-                                <h2 className="text-2xl font-black mb-4 uppercase tracking-tight text-gray-900 italic">Update Confirmed</h2>
+                                <h2 className="text-2xl font-bold mb-4 uppercase tracking-tight text-gray-900 ">Update Confirmed</h2>
                             </motion.div>
                         ) : (
-                            <form onSubmit={handleEditSubmit} className="space-y-10 relative z-10 font-['Outfit']">
-                                <RequisitionFormFields data={editingReq} setData={setEditingReq} isEdit={true} />
+                            <form onSubmit={handleEditSubmit} className="space-y-10 relative z-10 ">
+                                {renderRequisitionFormFields(editingReq, setEditingReq, true)}
                                 <div className="flex gap-4 pt-6">
                                     <button
                                         type="button" onClick={() => { setView('HUB'); setEditingReq(null); }}
-                                        className="flex-1 py-5 bg-gray-50 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all italic border border-gray-100"
+                                        className="flex-1 py-5 bg-gray-50 text-gray-400 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-gray-100 transition-all  border border-gray-100"
                                     >Cancel</button>
                                     <button
                                         type="submit" disabled={submitting}
-                                        className="flex-[2] bg-brand-yellow text-black py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black hover:text-brand-yellow transition-all flex items-center justify-center gap-3 shadow-xl border border-brand-yellow italic group/btn active:scale-95"
+                                        className="flex-[2] bg-brand-yellow text-black py-5 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-black hover:text-brand-yellow transition-all flex items-center justify-center gap-3 shadow-xl border border-brand-yellow  group/btn active:scale-95"
                                     >
                                         {submitting ? 'UPDATING...' : 'SAVE MODIFICATIONS'} <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                                     </button>

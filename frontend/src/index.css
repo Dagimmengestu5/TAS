@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Product+Sans&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -8,8 +8,8 @@
 }
 
 :root {
-  font-family: 'Outfit', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  font-family: 'Product Sans', 'Google Sans', 'Open Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
   font-weight: 400;
 
   color-scheme: light;
@@ -20,6 +20,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: inherit;
 }
 
 ::selection {

@@ -96,7 +96,7 @@ const ForgotPassword = () => {
                             </button>
 
                             <div className="text-center">
-                                <Link to="/login" className="text-xs font-bold text-gray-500 hover:text-black transition-colors uppercase tracking-widest">
+                                <Link to="/login" className="text-xs font-bold text-gray-500 hover:text-black transition-colors uppercase tracking-wider">
                                     I remember my password
                                 </Link>
                             </div>

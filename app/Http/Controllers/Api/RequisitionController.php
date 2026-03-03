@@ -13,13 +13,16 @@ use App\Notifications\RequisitionPendingHR;
 use App\Notifications\RequisitionHRApproved;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
+use App\Notifications\RequisitionRejected;
+use App\Notifications\RequisitionReadyForPosting;
+use App\Notifications\RequisitionCreated;
 
 class RequisitionController extends Controller
 {
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = JobRequisition::with(['user', 'company', 'department']);
+        $query = JobRequisition::with(['user', 'company', 'department', 'jobPosting']);
 
         \Log::info('Requisition index call', [
             'user_id' => $user->id,
@@ -28,8 +31,10 @@ class RequisitionController extends Controller
 
         if ($user->role_id == 2) { // Hiring Manager
             $query->where('user_id', $user->id);
-        } elseif (in_array($user->role_id, [1, 3, 5, 6])) {
-            // Authorized roles (Admin, HR, TA, CEO) have unfiltered global access. Frontend will categorize.
+        } elseif (in_array($user->role_id, [3, 5, 6])) { // HR, TA, CEO
+            $query->where('company_id', $user->company_id);
+        } elseif ($user->role_id == 1) { // Admin
+            // Admin has global access
         } else {
             return response()->json([], 403);
         }
@@ -57,7 +62,7 @@ class RequisitionController extends Controller
     public function hrRequisitions(Request $request)
     {
         $requisitions = JobRequisition::with(['user', 'company', 'department'])
-                            ->where('status', 'pending_hr')
+                            ->whereIn('status', ['pending_hr', 'pending_ceo', 'approved', 'rejected'])
                             ->orderBy('created_at', 'desc')
                             ->get();
         return response()->json($requisitions);
@@ -66,7 +71,7 @@ class RequisitionController extends Controller
     public function ceoRequisitions(Request $request)
     {
         $requisitions = JobRequisition::with(['user', 'company', 'department'])
-                            ->where('status', 'pending_ceo')
+                            ->whereIn('status', ['pending_ceo', 'approved', 'rejected'])
                             ->orderBy('created_at', 'desc')
                             ->get();
         return response()->json($requisitions);
@@ -104,14 +109,28 @@ class RequisitionController extends Controller
             'jd_path' => $jdPath,
         ]);
 
-        // Notify HR Approver(s) — wrapped in try-catch so mail failures don't block submission
+        // Notify HR Approver(s) within the SAME company
         try {
-            $hrApprovers = User::where('role_id', 3)->get();
+            $hrApprovers = User::where('role_id', 3)
+                ->where('company_id', $requisition->company_id)
+                ->get();
             if ($hrApprovers->count() > 0) {
                 Notification::send($hrApprovers, new RequisitionPendingHR($requisition));
             }
         } catch (\Exception $e) {
             \Log::warning('HR notification failed (non-fatal): ' . $e->getMessage());
+        }
+
+        // Notify TA Team (role_id 5) within the SAME company about NEW requisition
+        try {
+            $taTeam = User::where('role_id', 5)
+                ->where('company_id', $requisition->company_id)
+                ->get();
+            if ($taTeam->count() > 0) {
+                Notification::send($taTeam, new RequisitionCreated($requisition));
+            }
+        } catch (\Exception $e) {
+            \Log::warning('TA creation notification failed (non-fatal): ' . $e->getMessage());
         }
 
         return response()->json($requisition, 201);
@@ -130,9 +149,11 @@ class RequisitionController extends Controller
                 'budget_status' => 'approved'
             ]);
 
-            // Notify CEO(s) — wrapped so mail failures don't block the approval
+            // Notify CEO(s) within the SAME company
             try {
-                $ceos = User::where('role_id', 6)->get();
+                $ceos = User::where('role_id', 6)
+                    ->where('company_id', $requisition->company_id)
+                    ->get();
                 if ($ceos->count() > 0) {
                     Notification::send($ceos, new RequisitionPendingCEO($requisition));
                 }
@@ -163,9 +184,11 @@ class RequisitionController extends Controller
                 \Log::warning('Final approval notification failed (non-fatal): ' . $e->getMessage());
             }
 
-            // Notify TA Team (role_id 5)
+            // Notify TA Team (role_id 5) within the SAME company
             try {
-                $taTeam = User::where('role_id', 5)->get();
+                $taTeam = User::where('role_id', 5)
+                    ->where('company_id', $requisition->company_id)
+                    ->get();
                 if ($taTeam->count() > 0) {
                     \Illuminate\Support\Facades\Notification::send($taTeam, new RequisitionReadyForPosting($requisition));
                 }
@@ -186,6 +209,15 @@ class RequisitionController extends Controller
         if (($user->role_id == 3 && $requisition->status === 'pending_hr') ||
             ($user->role_id == 6 && $requisition->status === 'pending_ceo')) {
             $requisition->update(['status' => 'rejected']);
+
+            // Notify Hiring Manager about rejection
+            try {
+                if ($requisition->user) {
+                    $requisition->user->notify(new RequisitionRejected($requisition));
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Rejection notification failed (non-fatal): ' . $e->getMessage());
+            }
         } else {
             return response()->json(['message' => 'Unauthorized'], 403);
         }

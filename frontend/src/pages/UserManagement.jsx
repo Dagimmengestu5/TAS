@@ -128,39 +128,39 @@ const UserManagement = () => {
     );
 
     return (
-        <div className="bg-white min-h-screen w-full px-6 py-6 lg:px-10 font-['Outfit'] selection:bg-brand-yellow/30">
+        <div className="bg-white min-h-screen w-full px-6 py-6 lg:px-10  selection:bg-brand-yellow/30">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic flex items-center gap-4">
-                        <div className="w-2.5 h-8 bg-brand-yellow rounded-full"></div> Identity Matrix
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-bold text-gray-900  uppercase  flex items-center gap-3">
+                        <div className="w-2 h-6 bg-brand-yellow rounded-full"></div> Identity Matrix
                     </h1>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-4 h-4 text-brand-yellow" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 italic">Central Node Control</span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-brand-yellow" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 ">Central Node Control</span>
                         </div>
                         <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-yellow italic">{users.length} Active Nodes</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-brand-yellow ">{users.length} Active Nodes</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                     <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-yellow transition-colors" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-brand-yellow transition-colors" />
                         <input
                             type="text"
                             placeholder="Scan identities..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-gray-50 border border-gray-100 rounded-xl py-3 pl-12 pr-6 text-[11px] font-bold uppercase tracking-widest text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-yellow/20 focus:border-brand-yellow transition-all w-full md:w-64"
+                            className="bg-gray-50 border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 text-[10px] font-bold uppercase tracking-wider text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all w-full md:w-56"
                         />
                     </div>
                     <button
                         onClick={() => handleOpenModal()}
-                        className="bg-gray-900 text-brand-yellow p-3 px-6 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-lg border border-gray-800 italic group"
+                        className="bg-gray-900 text-brand-yellow py-2.5 px-5 rounded-xl font-bold text-[10px] uppercase tracking-wider flex items-center gap-2.5 hover:scale-105 active:scale-95 transition-all shadow-md border border-gray-800  group"
                     >
-                        Initialize Node <UserPlus className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                        Initialize Node <UserPlus className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
                     </button>
                 </div>
             </div>
@@ -178,7 +178,7 @@ const UserManagement = () => {
                         <div className="w-8 h-8 rounded-lg bg-brand-yellow/10 flex items-center justify-center">
                             <Zap className="w-4 h-4 text-brand-yellow" />
                         </div>
-                        <span className="text-[11px] font-black text-brand-yellow uppercase tracking-widest italic">{success}</span>
+                        <span className="text-[11px] font-bold text-brand-yellow uppercase tracking-wider ">{success}</span>
                     </motion.div>
                 )}
                 {error && (
@@ -189,7 +189,7 @@ const UserManagement = () => {
                         className="mb-8 p-4 bg-red-500 rounded-xl shadow-xl flex items-center gap-4 border border-red-400"
                     >
                         <AlertCircle className="w-5 h-5 text-white" />
-                        <span className="text-[11px] font-black text-white uppercase tracking-widest italic">{error}</span>
+                        <span className="text-[11px] font-bold text-white uppercase tracking-wider ">{error}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -200,11 +200,11 @@ const UserManagement = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 border-b border-gray-100">
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">Node Entity</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">Structural Unit</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">Access Vector</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">Registration</th>
-                                <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">Protocols</th>
+                                <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Node Entity</th>
+                                <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Structural Unit</th>
+                                <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Access Vector</th>
+                                <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Registration</th>
+                                <th className="px-6 py-4 text-right text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Protocols</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -221,59 +221,63 @@ const UserManagement = () => {
                                 <tr>
                                     <td colSpan="4" className="px-8 py-20 text-center">
                                         <EyeOff className="w-12 h-12 text-gray-100 mx-auto mb-4" />
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">No matching identities detected in cluster buffer.</p>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ">No matching identities detected in cluster buffer.</p>
                                     </td>
                                 </tr>
                             ) : (
                                 filteredUsers.map((user) => (
-                                    <tr key={user.id} className="group hover:bg-gray-50/50 transition-all duration-300">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-brand-yellow font-black text-md shadow-lg border border-gray-800 transition-transform group-hover:scale-110 relative overflow-hidden">
-                                                    <div className="absolute top-0 left-0 w-full h-[1.5px] bg-brand-yellow group-hover:animate-shimmer"></div>
+                                    <tr key={user.id} className="group hover:bg-gray-50/30 transition-all duration-300">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-brand-yellow font-bold text-sm shadow-md border border-gray-800 transition-transform group-hover:scale-105 relative overflow-hidden">
+                                                    <div className="absolute top-0 left-0 w-full h-[1px] bg-brand-yellow group-hover:animate-shimmer"></div>
                                                     {user.name.charAt(0)}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[13px] font-black text-gray-900 uppercase tracking-tight italic leading-none mb-1.5 group-hover:text-brand-yellow transition-colors">{user.name}</span>
-                                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 italic">
-                                                        <Mail className="w-3 h-3" /> {user.email}
+                                                    <span className="text-[12px] font-bold text-gray-900 uppercase tracking-tight  leading-tight mb-1 group-hover:text-brand-yellow transition-colors">{user.name}</span>
+                                                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 ">
+                                                        <Mail className="w-2.5 h-2.5" /> {user.email}
                                                     </span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-gray-900 uppercase italic mb-1">{user.company?.name || 'GENERIC'}</span>
-                                                <span className="text-[8px] font-black text-brand-yellow uppercase tracking-widest italic">{user.department?.name || 'UNASSIGNED'}</span>
+                                        <td className="px-6 py-4">
+                                            {user.role?.name === 'candidate' ? (
+                                                <span className="text-[8px] font-bold text-gray-300 uppercase tracking-wider ">EXTERNAL NODE</span>
+                                            ) : (
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-bold text-gray-900 uppercase  mb-0.5">{user.company?.name || 'GENERIC'}</span>
+                                                    <span className="text-[7.5px] font-bold text-brand-yellow uppercase tracking-wider ">{user.department?.name || 'UNASSIGNED'}</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 border border-gray-800 rounded-lg shadow-sm">
+                                                <div className="w-1 h-1 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_5px_#FFF200]"></div>
+                                                <span className="text-[8.5px] font-bold text-brand-yellow uppercase tracking-wider ">{user.role?.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-900 border border-gray-800 rounded-lg shadow-sm">
-                                                <div className="w-1.5 h-1.5 bg-brand-yellow rounded-full animate-pulse"></div>
-                                                <span className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.2em] italic">{user.role?.name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight italic flex items-center gap-2">
-                                                    <Clock className="w-3.5 h-3.5" /> Synchronized
+                                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-tight  flex items-center gap-1.5">
+                                                    <Clock className="w-3 h-3" /> Synchronized
                                                 </span>
-                                                <span className="text-[9px] font-black text-gray-900 uppercase tracking-widest mt-1 italic">{new Date(user.created_at).toLocaleDateString()}</span>
+                                                <span className="text-[8px] font-bold text-gray-900 uppercase tracking-wider mt-0.5 ">{new Date(user.created_at).toLocaleDateString()}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end items-center gap-2">
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end items-center gap-1.5">
                                                 <button
                                                     onClick={() => handleOpenModal(user)}
-                                                    className="p-2.5 bg-gray-50 hover:bg-gray-900 text-gray-400 hover:text-brand-yellow rounded-xl transition-all border border-gray-100 hover:border-gray-800 active:scale-90"
+                                                    className="p-2 bg-gray-50 hover:bg-gray-900 text-gray-400 hover:text-brand-yellow rounded-lg transition-all border border-gray-100 hover:border-gray-800 active:scale-90"
                                                 >
-                                                    <Edit2 className="w-4 h-4" />
+                                                    <Edit2 className="w-3.5 h-3.5" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(user.id)}
-                                                    className="p-2.5 bg-gray-50 hover:bg-red-500 text-gray-400 hover:text-white rounded-xl transition-all border border-gray-100 hover:border-red-400 active:scale-90"
+                                                    className="p-2 bg-gray-50 hover:bg-red-500 text-gray-400 hover:text-white rounded-lg transition-all border border-gray-100 hover:border-red-400 active:scale-90"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
                                         </td>
@@ -291,11 +295,11 @@ const UserManagement = () => {
                     <div className="p-2 bg-gray-50 rounded-lg">
                         <Shield className="w-4 h-4 text-gray-400" />
                     </div>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.4em] italic">Ecosystem Encryption Layer Active</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider ">Ecosystem Encryption Layer Active</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="h-[1px] w-24 bg-gray-100"></div>
-                    <span className="text-[9px] font-black text-brand-yellow uppercase tracking-widest italic animate-pulse">Live Uplink</span>
+                    <span className="text-[9px] font-bold text-brand-yellow uppercase tracking-wider  animate-pulse">Live Uplink</span>
                 </div>
             </div>
 
@@ -318,27 +322,28 @@ const UserManagement = () => {
                             className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-gray-100"
                         >
                             {/* Modal Header */}
-                            <div className="bg-gray-950 p-8 flex items-center justify-between relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-48 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-24"></div>
-                                <div className="flex flex-col gap-1.5 relative z-10">
-                                    <h2 className="text-xl font-black text-brand-yellow uppercase tracking-tight italic leading-none">
+                            <div className="bg-gray-950 p-6 flex items-center justify-between relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-16"></div>
+                                <div className="flex flex-col gap-1 relative z-10">
+                                    <h2 className="text-lg font-bold text-brand-yellow uppercase tracking-tight  leading-none">
                                         {editingUser ? 'Modulate Node' : 'Initialize Node'}
                                     </h2>
-                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] italic">Protocol ID: {editingUser?.id || 'NEW_ENTRY'}</span>
+                                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider ">Protocol ID: {editingUser?.id || 'NEW_ENTRY'}</span>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={handleCloseModal}
-                                    className="p-3 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-brand-yellow rounded-2xl transition-all active:scale-95 border border-white/5"
+                                    className="p-2.5 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-brand-yellow rounded-xl transition-all active:scale-95 border border-white/5 relative z-10"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
 
                             {/* Modal Content */}
-                            <form onSubmit={handleSubmit} className="p-10 space-y-8">
-                                <div className="space-y-6">
+                            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                                <div className="space-y-5">
                                     <div className="group">
-                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] italic mb-2.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Nominal Identifier</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Nominal Identifier</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -346,13 +351,13 @@ const UserManagement = () => {
                                                 placeholder="User handle..."
                                                 value={form.name}
                                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-bold text-gray-900 uppercase italic placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="group">
-                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] italic mb-2.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Transmission Uplink</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Transmission Uplink</label>
                                         <div className="relative">
                                             <input
                                                 type="email"
@@ -360,13 +365,13 @@ const UserManagement = () => {
                                                 placeholder="Email gateway..."
                                                 value={form.email}
                                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-bold text-gray-900 uppercase italic placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="group">
-                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] italic mb-2.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Access Key {editingUser && '(Keep empty to maintain current)'}</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Access Key {editingUser && '(Keep empty to maintain current)'}</label>
                                         <div className="relative">
                                             <input
                                                 type="password"
@@ -374,48 +379,48 @@ const UserManagement = () => {
                                                 placeholder="Encrypted string..."
                                                 value={form.password}
                                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-bold text-gray-900 uppercase italic placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3.5 text-[12px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
                                             />
-                                            <Lock className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-200 group-focus-within:text-brand-yellow transition-colors" />
+                                            <Lock className="absolute right-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-200 group-focus-within:text-brand-yellow transition-colors" />
                                         </div>
                                     </div>
 
                                     <div className="group">
-                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] italic mb-2.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Authorization Vector</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Authorization Vector</label>
                                         <div className="relative">
                                             <select
                                                 required
                                                 value={form.role_id}
                                                 onChange={(e) => setForm({ ...form, role_id: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-black text-gray-900 uppercase italic appearance-none focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all cursor-pointer"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  appearance-none focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all cursor-pointer"
                                             >
                                                 {roles.map(role => (
                                                     <option key={role.id} value={role.id}>{role.name}</option>
                                                 ))}
                                             </select>
-                                            <Key className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-200 pointer-events-none" />
+                                            <Key className="absolute right-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-200 pointer-events-none" />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="group">
-                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] italic mb-2.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Company Node</label>
+                                            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Company Node</label>
                                             <select
                                                 value={form.company_id}
                                                 onChange={(e) => setForm({ ...form, company_id: e.target.value, department_id: '' })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-[11px] font-black text-gray-900 uppercase italic focus:ring-2 focus:ring-brand-yellow/10 transition-all cursor-pointer"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold text-gray-900 uppercase  focus:ring-2 focus:ring-brand-yellow/10 transition-all cursor-pointer"
                                             >
                                                 <option value="">N/A</option>
                                                 {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </div>
                                         <div className="group">
-                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] italic mb-2.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Unit Node</label>
+                                            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Unit Node</label>
                                             <select
                                                 value={form.department_id}
                                                 disabled={!form.company_id}
                                                 onChange={(e) => setForm({ ...form, department_id: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-[11px] font-black text-gray-900 uppercase italic focus:ring-2 focus:ring-brand-yellow/10 transition-all cursor-pointer disabled:opacity-50"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold text-gray-900 uppercase  focus:ring-2 focus:ring-brand-yellow/10 transition-all cursor-pointer disabled:opacity-50"
                                             >
                                                 <option value="">N/A</option>
                                                 {departments
@@ -426,19 +431,19 @@ const UserManagement = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4 pt-4">
+                                <div className="flex gap-4 pt-2">
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="flex-1 py-4.5 bg-gray-50 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all italic border border-gray-100"
+                                        className="flex-1 py-3.5 bg-gray-50 text-gray-400 rounded-2xl font-bold text-[9px] uppercase tracking-wider hover:bg-gray-100 transition-all  border border-gray-100"
                                     >
                                         Abort
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-[2] py-4.5 bg-gray-900 text-brand-yellow rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-brand-yellow/5 border border-gray-800 flex items-center justify-center gap-3 italic group/btn"
+                                        className="flex-[2] py-3.5 bg-gray-900 text-brand-yellow rounded-2xl font-bold text-[9px] uppercase tracking-wider hover:bg-black transition-all shadow-lg border border-gray-800 flex items-center justify-center gap-2.5  group/btn"
                                     >
-                                        Execute Command <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                        Execute Command <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                                     </button>
                                 </div>
                             </form>

@@ -60,10 +60,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.'],
-            ]);
+        if (!$user) {
+            return response()->json(['message' => 'this email is not registerd'], 401);
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'check your password'], 401);
         }
 
         if (!$user->hasVerifiedEmail()) {

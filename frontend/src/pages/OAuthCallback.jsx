@@ -25,7 +25,7 @@ const OAuthCallback = () => {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-4 text-gray-500">
                 <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
-                <p className="text-xs font-bold uppercase tracking-widest">Bridging Connection...</p>
+                <p className="text-xs font-bold uppercase tracking-wider">Bridging Connection...</p>
             </div>
         </div>
     );

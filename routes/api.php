@@ -20,9 +20,6 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/email', [AuthController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('password.reset');
 
-// Public Job Access
-Route::get('/jobs', [JobController::class, 'index']);
-Route::get('/jobs/{job}', [JobController::class, 'show']);
 // Email Verification (OTP Based)
 Route::post('/email/send-otp', [OtpVerificationController::class, 'sendOtp'])
     ->middleware(['throttle:6,1']);
@@ -71,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/{id}', [NotificationController::class, 'show']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 
@@ -92,7 +90,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Reports
     Route::get('/reports/metrics', [ReportController::class, 'getRecruitmentMetrics']);
+    Route::get('/reports/ta-report', [ReportController::class, 'getTAReport']);
 });
+
+// Public Job Access (Placed after protected specific routes to avoid shadowing)
+Route::get('/jobs', [JobController::class, 'index']);
+Route::get('/jobs/{job}', [JobController::class, 'show']);
 
 // OAuth Routes
 Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect']);

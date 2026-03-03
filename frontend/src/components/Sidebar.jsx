@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Users, Briefcase, PieChart,
     ChevronRight, LogOut, Zap, ShieldCheck, Menu, ChevronLeft, X, Globe, Settings, EyeOff, Eye, ShieldAlert,
-    FilePlus
+    FilePlus, LayoutGrid
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,30 +13,31 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
         navigate('/');
-        await logout();
+        setTimeout(() => logout(), 0);
     };
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const menuItems = [
-        { icon: <Zap className="w-4 h-4" />, label: 'Hiring Request', path: '/manager/request', roles: ['hiring_manager', 'admin', 'hr_approver', 'ceo_approver'] },
-        { icon: <ShieldCheck className="w-4 h-4" />, label: 'HR Approvals', path: '/hr/approvals', roles: ['hr_approver', 'admin', 'ceo_approver'] },
-        { icon: <LayoutDashboard className="w-4 h-4" />, label: 'CEO Dashboard', path: '/ceo/approvals', roles: ['ceo_approver', 'admin'] },
-        { icon: <Briefcase className="w-4 h-4" />, label: 'TA Control', path: '/ta/dashboard', roles: ['ta_team', 'admin', 'hr_approver', 'ceo_approver'] },
-        { icon: <FilePlus className="w-4 h-4" />, label: 'Initialize Job', path: '/ta/jobs/create', roles: ['ta_team', 'admin'] },
-        { icon: <Globe className="w-4 h-4" />, label: 'Opportunity Hub', path: '/jobs', roles: ['candidate', 'admin', 'hiring_manager', 'ta_team', 'hr_approver', 'ceo_approver'] },
+        { icon: <Globe className="w-4 h-4" />, label: 'Home Node', path: '/', roles: ['candidate', 'admin', 'hiring_manager', 'ta_team', 'hr_approver', 'ceo_approver'] },
+        { icon: <Zap className="w-4 h-4" />, label: 'New Request', path: '/manager/request', roles: ['hiring_manager', 'admin', 'hr_approver', 'ceo_approver'] },
+        { icon: <ShieldCheck className="w-4 h-4" />, label: 'HR Review', path: '/hr/approvals', roles: ['hr_approver', 'admin', 'ceo_approver'] },
+        { icon: <LayoutDashboard className="w-4 h-4" />, label: 'Final Approval', path: '/ceo/approvals', roles: ['ceo_approver', 'admin'] },
+        { icon: <Briefcase className="w-4 h-4" />, label: 'Recruiter Hub', path: '/ta/dashboard', roles: ['ta_team', 'admin', 'hr_approver', 'ceo_approver'] },
+        { icon: <LayoutGrid className="w-4 h-4" />, label: 'Job Manager', path: '/ta/jobs', roles: ['ta_team', 'admin'] },
+        { icon: <PieChart className="w-4 h-4" />, label: 'Recruitment Report', path: '/ta/reports', roles: ['ta_team', 'admin'] },
         {
             icon: <Settings className="w-4 h-4" />,
             label: 'Settings',
-            path: '#',
+            path: '/admin/users',
             roles: ['admin'],
             isDropdown: true,
             subItems: [
-                { label: 'Manage Users', path: '/admin/users' },
-                { label: 'Manage Companies', path: '/admin/companies' },
-                { label: 'Manage Departments', path: '/admin/departments' },
+                { label: 'Users', path: '/admin/users' },
+                { label: 'Companies', path: '/admin/companies' },
+                { label: 'Departments', path: '/admin/departments' },
             ]
         }
     ];
@@ -44,12 +45,12 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
     const filteredItems = menuItems.filter(item => item.roles.includes(user?.role?.name));
 
     const sidebarVariants = {
-        open: { width: '20rem' },
-        closed: { width: '5.5rem' }
+        open: { width: '18rem' },
+        closed: { width: '5rem' }
     };
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full overflow-hidden bg-white bg-gradient-to-b from-white via-white to-gray-50/20 relative font-['Outfit']">
+        <div className="flex flex-col h-full overflow-hidden bg-white bg-gradient-to-b from-white via-white to-gray-50/20 relative font-sans">
             {/* Vertical Line */}
             <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gray-100/60 shadow-[1px_0_10px_rgba(0,0,0,0.01)]"></div>
 
@@ -69,12 +70,12 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                     exit={{ opacity: 0, x: -10 }}
                                     className="flex items-center gap-4"
                                 >
-                                    <div className="min-w-[2.25rem] h-9 bg-gray-900 rounded-xl flex items-center justify-center text-brand-yellow font-black shadow-lg transition-transform group-hover:scale-105">
+                                    <div className="min-w-[2.25rem] h-9 bg-gray-900 rounded-xl flex items-center justify-center text-brand-yellow font-bold shadow-lg transition-transform group-hover:scale-105">
                                         <Zap className="w-4 h-4" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-black text-[13px] tracking-tight uppercase text-gray-900 leading-none">Droga Hub</span>
-                                        <span className="text-[8px] font-black text-brand-yellow uppercase tracking-[0.4em] mt-1.5 italic">Ecosystem OS</span>
+                                        <span className="font-bold text-[13px] tracking-tight uppercase text-gray-900 leading-none">Droga Hub</span>
+                                        <span className="text-[8px] font-bold text-brand-yellow uppercase tracking-wider mt-1.5">Ecosystem OS</span>
                                     </div>
                                 </motion.div>
                             )}
@@ -114,11 +115,21 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                         return (
                             <div key={i} className="space-y-1">
                                 <button
-                                    onClick={() => (isOpen || isMobileOpen) && setIsSettingsOpen(!isSettingsOpen)}
+                                    onClick={() => {
+                                        if (!isSettingsOpen) {
+                                            if (isOpen || isMobileOpen) setIsSettingsOpen(true);
+                                            if (item.path && item.path !== '#') {
+                                                navigate(item.path);
+                                                closeMobile();
+                                            }
+                                        } else {
+                                            if (isOpen || isMobileOpen) setIsSettingsOpen(false);
+                                        }
+                                    }}
                                     className={`w-full flex items-center group relative overflow-hidden transition-all duration-300 ${isSubItemActive && !isSettingsOpen
                                         ? 'bg-gray-900 text-brand-yellow rounded-xl shadow-md'
                                         : 'text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl'
-                                        } ${isOpen || isMobileOpen ? 'px-5 py-4' : 'justify-center py-4 px-0 mx-auto w-10'}`}
+                                        } ${isOpen || isMobileOpen ? 'px-4 py-3' : 'justify-center py-3.5 px-0 mx-auto w-9'}`}
                                 >
                                     <div className="flex items-center gap-5">
                                         <div className={`${isSubItemActive ? 'text-brand-yellow' : 'group-hover:text-brand-yellow'} transition-all`}>
@@ -130,7 +141,7 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
                                                     exit={{ opacity: 0, x: -10 }}
-                                                    className="uppercase tracking-[0.2em] text-[9px] font-black whitespace-nowrap italic"
+                                                    className="uppercase tracking-wider text-[9px] font-bold whitespace-nowrap"
                                                 >
                                                     {item.label}
                                                 </motion.span>
@@ -163,7 +174,7 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                                             to={sub.path}
                                                             key={si}
                                                             onClick={closeMobile}
-                                                            className={`flex items-center gap-3 px-10 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${subActive
+                                                            className={`flex items-center gap-3 px-10 py-3 text-[10px] font-bold uppercase tracking-wider transition-all ${subActive
                                                                 ? 'text-brand-yellow bg-gray-900 rounded-lg mx-2'
                                                                 : 'text-gray-500 hover:text-gray-900'
                                                                 }`}
@@ -189,7 +200,7 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                             className={`flex items-center group relative overflow-hidden transition-all duration-300 ${isActive
                                 ? 'bg-gray-900 text-brand-yellow rounded-xl shadow-md'
                                 : 'text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl'
-                                } ${isOpen || isMobileOpen ? 'px-5 py-4' : 'justify-center py-4 px-0 mx-auto w-10'}`}
+                                } ${isOpen || isMobileOpen ? 'px-4 py-3' : 'justify-center py-3.5 px-0 mx-auto w-9'}`}
                         >
                             <div className="flex items-center gap-5">
                                 <div className={`${isActive ? 'scale-105' : 'group-hover:scale-105 group-hover:text-brand-yellow'} transition-all`}>
@@ -201,7 +212,7 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -10 }}
-                                            className="uppercase tracking-[0.2em] text-[9px] font-black whitespace-nowrap italic"
+                                            className="uppercase tracking-wider text-[10px] font-bold whitespace-nowrap"
                                         >
                                             {item.label}
                                         </motion.span>
@@ -233,17 +244,17 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                 className="space-y-5"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center text-brand-yellow font-black text-sm shadow-md border border-gray-800">
+                                    <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center text-brand-yellow font-bold text-sm shadow-md border border-gray-800">
                                         {user?.name?.charAt(0)}
                                     </div>
                                     <div className="flex flex-col overflow-hidden">
-                                        <p className="font-black text-[10px] uppercase truncate text-gray-900 leading-none mb-1">{user?.name}</p>
-                                        <p className="text-[8px] font-black text-brand-yellow uppercase tracking-[0.2em] truncate italic">{user?.role?.name}</p>
+                                        <p className="font-bold text-[10px] uppercase truncate text-gray-900 leading-none mb-1">{user?.name}</p>
+                                        <p className="text-[8px] font-bold text-brand-yellow uppercase tracking-wider truncate">{user?.role?.name}</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={handleLogout}
-                                    className="w-full flex items-center justify-center gap-3 py-3 bg-white border border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all shadow-sm group"
+                                    className="w-full flex items-center justify-center gap-3 py-3 bg-white border border-gray-200 rounded-xl text-[10px] font-bold uppercase tracking-wider text-red-500 hover:bg-red-50 transition-all shadow-sm group"
                                 >
                                     <LogOut className="w-3.5 h-3.5 group-hover:scale-105" /> Sign Out
                                 </button>

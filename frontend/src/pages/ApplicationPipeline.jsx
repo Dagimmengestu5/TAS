@@ -17,6 +17,10 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
     const [updatingStatus, setUpdatingStatus] = useState(false);
     const [statusFeedback, setStatusFeedback] = useState('');
     const [targetStatus, setTargetStatus] = useState(null);
+    const [offerDocument, setOfferDocument] = useState(null);
+    const [interviewDate, setInterviewDate] = useState('');
+    const [interviewTime, setInterviewTime] = useState('');
+    const [interviewLocation, setInterviewLocation] = useState('');
     const [openMenuId, setOpenMenuId] = useState(null); // tracks which card's menu is open
 
     useEffect(() => {
@@ -66,10 +70,41 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
 
         setUpdatingStatus(true);
         try {
-            const response = await api.patch(`/applications/${id}/status`, {
-                status: newStatus,
-                feedback: statusFeedback || `Transitioned to ${newStatus.replace('_', ' ')}`
-            });
+            let response;
+            if (newStatus.startsWith('interview')) {
+                const scheduledAt = `${interviewDate} ${interviewTime}`;
+                response = await api.post('/interviews', {
+                    application_id: id,
+                    type: newStatus,
+                    scheduled_at: scheduledAt,
+                    location: interviewLocation,
+                    notes: statusFeedback
+                });
+            } else {
+                let data;
+                const headers = {};
+
+                if (newStatus === 'offer' && offerDocument) {
+                    data = new FormData();
+                    data.append('_method', 'PATCH');
+                    data.append('status', newStatus);
+                    data.append('feedback', statusFeedback || `Transitioned to ${newStatus.replace('_', ' ')}`);
+                    data.append('offer_document', offerDocument);
+                    headers['Content-Type'] = 'multipart/form-data';
+                } else {
+                    data = {
+                        status: newStatus,
+                        feedback: statusFeedback || `Transitioned to ${newStatus.replace('_', ' ')}`
+                    };
+                }
+
+                response = await api({
+                    method: (newStatus === 'offer' && offerDocument) ? 'post' : 'patch',
+                    url: `/applications/${id}/status`,
+                    data: data,
+                    headers: headers
+                });
+            }
 
             setApplications(apps => apps.map(app => app.id === id ? { ...app, ...response.data } : app));
             if (selectedApp?.id === id) setSelectedApp({ ...selectedApp, ...response.data });
@@ -77,6 +112,10 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
             // Reset states
             setTargetStatus(null);
             setStatusFeedback('');
+            setOfferDocument(null);
+            setInterviewDate('');
+            setInterviewTime('');
+            setInterviewLocation('');
         } catch (err) {
             alert('Status update failed.');
         } finally {
@@ -104,14 +143,14 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
             <div className="h-full w-full flex items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 italic">Accessing Node Cluster...</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ">Accessing application pipeline...</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white h-full w-full max-h-full flex flex-col selection:bg-brand-yellow/30 font-['Outfit'] overflow-hidden">
+        <div className="bg-white h-full w-full max-h-full flex flex-col selection:bg-brand-yellow/30  overflow-hidden">
             {/* Search & Filter - Sticky at Top */}
             <div className="px-6 py-4 lg:px-10 border-b border-gray-100 bg-white shrink-0 z-20">
                 <div className="flex flex-col md:flex-row gap-4">
@@ -119,8 +158,8 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-yellow transition-colors w-4 h-4" />
                         <input
                             type="text"
-                            placeholder="SEARCH CANDIDATE OR JOB IDENTITY..."
-                            className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-11 pr-4 py-3 text-[11px] font-black uppercase tracking-tight focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow transition-all shadow-inner italic"
+                            placeholder="Search candidate or job requisition..."
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-11 pr-4 py-3 text-[11px] font-bold tracking-tight focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow transition-all shadow-inner "
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -130,7 +169,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                     <div className="relative">
                         <button
                             onClick={() => { setShowFilterDropdown(!showFilterDropdown); setShowJobFilterDropdown(false); }}
-                            className="flex items-center gap-3 bg-gray-900 text-brand-yellow px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all shadow-lg italic border border-gray-800 rounded-xl group"
+                            className="flex items-center gap-3 bg-gray-900 text-brand-yellow px-5 py-3 text-[10px] font-bold uppercase tracking-wider hover:bg-black transition-all shadow-lg  border border-gray-800 rounded-xl group"
                         >
                             <Filter className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                             {filterStatus === 'all' ? 'Status' : filterStatus.replace('_', ' ')}
@@ -148,7 +187,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                     <div className="p-2.5 space-y-1">
                                         <button
                                             onClick={() => { setFilterStatus('all'); setShowFilterDropdown(false); }}
-                                            className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors italic ${filterStatus === 'all' ? 'bg-brand-yellow text-black' : 'hover:bg-gray-50 text-gray-500'}`}
+                                            className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-colors  ${filterStatus === 'all' ? 'bg-brand-yellow text-black' : 'hover:bg-gray-50 text-gray-500'}`}
                                         >
                                             All Statuses
                                         </button>
@@ -157,7 +196,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                             <button
                                                 key={s}
                                                 onClick={() => { setFilterStatus(s); setShowFilterDropdown(false); }}
-                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors italic rounded-xl ${filterStatus === s ? 'bg-brand-yellow text-black shadow-md' : 'hover:bg-gray-50 text-gray-500'}`}
+                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors  rounded-xl ${filterStatus === s ? 'bg-brand-yellow text-black shadow-md' : 'hover:bg-gray-50 text-gray-500'}`}
                                             >
                                                 {s.replace('_', ' ')}
                                             </button>
@@ -172,7 +211,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                     <div className="relative">
                         <button
                             onClick={() => { setShowJobFilterDropdown(!showJobFilterDropdown); setShowFilterDropdown(false); }}
-                            className="flex items-center gap-3 bg-white border border-gray-200 text-gray-700 px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:border-brand-yellow hover:text-gray-900 transition-all italic rounded-xl group"
+                            className="flex items-center gap-3 bg-white border border-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-wider hover:border-brand-yellow hover:text-gray-900 transition-all  rounded-xl group"
                         >
                             <Briefcase className="w-4 h-4 text-gray-400 group-hover:text-brand-yellow transition-colors" />
                             {filterJobTitle === 'all' ? 'All Jobs' : filterJobTitle.length > 16 ? filterJobTitle.slice(0, 16) + '...' : filterJobTitle}
@@ -190,18 +229,18 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                     <div className="p-2.5 space-y-1 max-h-64 overflow-y-auto">
                                         <button
                                             onClick={() => { setFilterJobTitle('all'); setShowJobFilterDropdown(false); }}
-                                            className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors italic ${filterJobTitle === 'all' ? 'bg-brand-yellow text-black' : 'hover:bg-gray-50 text-gray-500'}`}
+                                            className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-colors  ${filterJobTitle === 'all' ? 'bg-brand-yellow text-black' : 'hover:bg-gray-50 text-gray-500'}`}
                                         >
                                             All Jobs
                                         </button>
                                         <div className="h-px bg-gray-50 my-1 mx-2"></div>
                                         {uniqueJobTitles.length === 0 ? (
-                                            <p className="text-[9px] text-gray-300 italic px-4 py-2">No jobs found</p>
+                                            <p className="text-[9px] text-gray-300  px-4 py-2">No jobs found</p>
                                         ) : uniqueJobTitles.map(title => (
                                             <button
                                                 key={title}
                                                 onClick={() => { setFilterJobTitle(title); setShowJobFilterDropdown(false); }}
-                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors italic rounded-xl ${filterJobTitle === title ? 'bg-brand-yellow text-black shadow-md' : 'hover:bg-gray-50 text-gray-600'}`}
+                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors  rounded-xl ${filterJobTitle === title ? 'bg-brand-yellow text-black shadow-md' : 'hover:bg-gray-50 text-gray-600'}`}
                                             >
                                                 {title}
                                             </button>
@@ -235,13 +274,13 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                 <div className="flex gap-6 p-6 lg:p-8 h-full min-w-max items-stretch">
                     {statuses.filter(s => filterStatus === 'all' || s === filterStatus).map(status => (
                         <div key={status} className="w-[320px] flex flex-col bg-white/40 rounded-[2rem] p-3 border border-gray-100/50 shadow-inner" style={{ height: '100%', minHeight: 0 }}>
-                            <div className="flex items-center justify-between px-5 py-4 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl italic mb-4 shrink-0 group relative overflow-hidden">
+                            <div className="flex items-center justify-between px-5 py-4 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl  mb-4 shrink-0 group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-24 h-full bg-brand-yellow/5 skew-x-[-20deg] translate-x-12 group-hover:translate-x-2 transition-transform duration-1000"></div>
                                 <div className="flex items-center gap-3 relative z-10">
                                     <div className="w-2 h-2 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_10px_#FFF200]"></div>
-                                    <h2 className="text-[12px] font-black uppercase tracking-[0.25em] text-brand-yellow font-['Outfit']">{status.replace('_', ' ')}</h2>
+                                    <h2 className="text-[12px] font-bold uppercase tracking-wider text-brand-yellow ">{status.replace('_', ' ')}</h2>
                                 </div>
-                                <span className="text-[11px] font-black text-white/30 uppercase tracking-[0.2em] relative z-10 px-2 py-1 bg-white/5 rounded-md">
+                                <span className="text-[11px] font-bold text-white/30 uppercase tracking-wider relative z-10 px-2 py-1 bg-white/5 rounded-md">
                                     {filteredApps.filter(a => (a.status?.toLowerCase() || '') === status).length}
                                 </span>
                             </div>
@@ -287,7 +326,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                                                     {/* Preview option */}
                                                                     <button
                                                                         onClick={() => { setOpenMenuId(null); setSelectedApp(app); }}
-                                                                        className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-700 hover:bg-brand-yellow/10 hover:text-gray-900 rounded-xl transition-all italic"
+                                                                        className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-700 hover:bg-brand-yellow/10 hover:text-gray-900 rounded-xl transition-all "
                                                                     >
                                                                         <User className="w-3.5 h-3.5 text-brand-yellow" />
                                                                         Preview Profile
@@ -300,7 +339,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                                                     <button
                                                                         onClick={() => handleAddToPool(app)}
                                                                         disabled={app.status === 'pooled'}
-                                                                        className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all italic disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-900 hover:text-brand-yellow text-gray-700 group/pool"
+                                                                        className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all  disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-900 hover:text-brand-yellow text-gray-700 group/pool"
                                                                     >
                                                                         <Archive className="w-3.5 h-3.5 group-hover/pool:text-brand-yellow text-gray-400" />
                                                                         {app.status === 'pooled' ? 'Already Pooled' : 'Add to Resource Pool'}
@@ -312,21 +351,22 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                                 </div>
                                             </div>
 
-                                            <h3 className="text-[15px] font-black text-gray-900 uppercase tracking-tight mb-2 italic leading-tight group-hover:text-brand-yellow transition-colors truncate">{cand.name || 'Anonymous Unit'}</h3>
+                                            <h3 className="text-base font-bold text-gray-900 tracking-tight mb-0.5 font-sans leading-tight group-hover:text-brand-yellow transition-colors truncate">{cand.name || 'Anonymous Unit'}</h3>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate mb-2">{app.job_posting?.title || app.job_posting?.requisition?.title || 'General Applicaiton'}</p>
 
                                             {/* Final Step Audit Log */}
                                             <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group-hover:bg-brand-yellow/5 group-hover:border-brand-yellow/10 transition-colors">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <ShieldCheck className="w-3 h-3 text-brand-yellow" />
-                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest italic">Vetted by: <span className="text-gray-900">{adminName}</span></span>
+                                                    <span className="text-xs font-bold text-gray-400 font-sans">Vetted by: <span className="text-gray-900">{adminName}</span></span>
                                                 </div>
-                                                <p className="text-[9px] font-bold text-gray-500 italic line-clamp-1">"{latestLog.feedback || 'Access protocol synchronized.'}"</p>
+                                                <p className="text-xs font-semibold text-gray-500 font-sans line-clamp-1">"{latestLog.feedback || 'Status updated.'}"</p>
                                             </div>
 
                                             <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.2em]">Applied</span>
-                                                    <span className="text-[10px] font-black text-gray-900 uppercase italic mt-1">{new Date(app.created_at).toLocaleDateString()}</span>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-sans">Applied</span>
+                                                    <span className="text-xs font-bold text-gray-600 font-sans mt-1">{new Date(app.created_at).toLocaleDateString()}</span>
                                                 </div>
                                                 <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow group-hover:scale-110 transition-all duration-500 shadow-sm">
                                                     <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black transition-all" />
@@ -369,13 +409,13 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                             <div className="md:w-[38%] p-8 overflow-y-auto bg-gray-50/50 border-r border-gray-100 flex flex-col gap-6">
                                 {/* Avatar + Name */}
                                 <div className="flex flex-col items-center text-center">
-                                    <div className="w-20 h-20 bg-gray-900 rounded-[2rem] flex items-center justify-center text-brand-yellow text-3xl font-black shadow-2xl border border-gray-800 relative mb-4">
+                                    <div className="w-20 h-20 bg-gray-900 rounded-[2rem] flex items-center justify-center text-brand-yellow text-3xl font-bold shadow-2xl border border-gray-800 relative mb-4">
                                         <div className="absolute inset-0 bg-brand-yellow/10 rounded-[2rem] blur-xl"></div>
                                         {selectedApp.candidate?.name?.charAt(0) || '?'}
                                     </div>
-                                    <span className="text-[8px] font-black text-brand-yellow bg-gray-900 px-3 py-1 rounded-lg uppercase tracking-[0.2em] mb-2 italic">Candidate Profile</span>
-                                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight italic">{selectedApp.candidate?.name || 'Anonymous'}</h2>
-                                    <p className="text-[9px] text-gray-400 font-bold mt-1">{selectedApp.candidate?.email}</p>
+                                    <span className="text-xs font-bold text-brand-yellow bg-gray-900 px-3 py-1 rounded-lg uppercase tracking-wide mb-2 font-sans">Candidate Profile</span>
+                                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight font-sans mt-2">{selectedApp.candidate?.name || 'Anonymous'}</h2>
+                                    <p className="text-sm font-medium text-gray-500 mt-1">{selectedApp.candidate?.email}</p>
                                 </div>
 
                                 {/* Personal Info Grid */}
@@ -387,11 +427,11 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                         { icon: MapPin, label: 'Location', val: selectedApp.candidate?.current_address },
                                     ].map((item, i) => (
                                         <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <item.icon className="w-3 h-3 text-brand-yellow" />
-                                                <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest italic">{item.label}</span>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <item.icon className="w-3.5 h-3.5 text-brand-yellow" />
+                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider font-sans">{item.label}</span>
                                             </div>
-                                            <span className="text-[11px] font-black text-gray-900 uppercase italic leading-tight">{item.val || '—'}</span>
+                                            <span className="text-sm font-bold text-gray-900 leading-tight font-sans">{item.val || '—'}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -400,11 +440,11 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                 <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Briefcase className="w-4 h-4 text-brand-yellow" />
-                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest italic">Education</span>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider font-sans">Education</span>
                                     </div>
-                                    <p className="text-[12px] font-black text-gray-900 uppercase italic tracking-tight">{selectedApp.candidate?.institution_name || '—'}</p>
+                                    <p className="text-base font-bold text-gray-900 tracking-tight font-sans">{selectedApp.candidate?.institution_name || '—'}</p>
                                     {selectedApp.candidate?.cgpa && (
-                                        <p className="text-[10px] font-bold text-gray-400 italic mt-1">CGPA: <span className="text-gray-900 font-black">{selectedApp.candidate.cgpa}</span></p>
+                                        <p className="text-xs font-medium text-gray-400 mt-2 font-sans">CGPA: <span className="text-gray-900 font-bold">{selectedApp.candidate.cgpa}</span></p>
                                     )}
                                 </div>
 
@@ -412,9 +452,9 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                 <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Activity className="w-4 h-4 text-brand-yellow" />
-                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest italic">Experience</span>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider font-sans">Experience</span>
                                     </div>
-                                    <p className="text-[11px] font-black text-gray-900 uppercase italic">{selectedApp.candidate?.years_of_experience != null ? `${selectedApp.candidate.years_of_experience} years` : '—'}</p>
+                                    <p className="text-sm font-bold text-gray-900 font-sans">{selectedApp.candidate?.years_of_experience != null ? `${selectedApp.candidate.years_of_experience} years` : '—'}</p>
                                 </div>
 
                                 {/* CV Download */}
@@ -423,13 +463,13 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                         href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8003'}/storage/${selectedApp.candidate.cv_path}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-3 w-full py-4 bg-gray-900 text-brand-yellow rounded-2xl font-black text-[10px] uppercase tracking-widest italic hover:bg-black transition-all shadow-xl border border-gray-800 active:scale-95"
+                                        className="flex items-center justify-center gap-3 w-full py-4 bg-gray-900 text-brand-yellow rounded-2xl font-bold text-xs uppercase tracking-wide hover:bg-black transition-all shadow-xl border border-gray-800 active:scale-95 font-sans"
                                     >
                                         <Download className="w-4 h-4" />
                                         Download CV / Resume
                                     </a>
                                 ) : (
-                                    <div className="flex items-center justify-center gap-3 w-full py-4 bg-gray-50 border border-gray-100 rounded-2xl text-[10px] font-black text-gray-300 uppercase tracking-widest italic">
+                                    <div className="flex items-center justify-center gap-3 w-full py-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs font-bold text-gray-400 uppercase tracking-wide font-sans">
                                         <Download className="w-4 h-4" />
                                         No CV Uploaded
                                     </div>
@@ -440,19 +480,19 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                             <div className="md:w-[62%] p-8 overflow-y-auto flex flex-col gap-6 bg-white">
 
                                 {/* Applied Position */}
-                                <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-[0.3em] italic block mb-2">Applied Position</span>
-                                    <h3 className="text-lg font-black text-gray-900 uppercase italic tracking-tight leading-tight">
+                                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2 font-sans">Applied Position</span>
+                                    <h3 className="text-xl font-bold text-gray-900 tracking-tight leading-tight font-sans">
                                         {selectedApp.job_posting?.requisition?.title || '—'}
                                     </h3>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <div className={`inline-flex px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest italic border ${selectedApp.status === 'hired' ? 'bg-green-50 text-green-600 border-green-100' :
+                                    <div className="flex items-center gap-3 mt-4">
+                                        <div className={`inline-flex px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border font-sans ${selectedApp.status === 'hired' ? 'bg-green-50 text-green-600 border-green-100' :
                                             selectedApp.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
                                                 'bg-amber-50 text-amber-500 border-amber-100'
                                             }`}>
                                             {selectedApp.status?.replace('_', ' ')}
                                         </div>
-                                        <span className="text-[9px] text-gray-400 font-bold">Applied {new Date(selectedApp.created_at).toLocaleDateString()}</span>
+                                        <span className="text-xs text-gray-500 font-medium font-sans">Applied {new Date(selectedApp.created_at).toLocaleDateString()}</span>
                                     </div>
                                 </div>
 
@@ -460,9 +500,9 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                 <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
                                     <div className="flex items-center gap-3 mb-3">
                                         <MessageSquare className="w-4 h-4 text-brand-yellow" />
-                                        <span className="text-[8px] font-black text-brand-yellow uppercase tracking-[0.3em] italic">Professional Background / Cover Letter</span>
+                                        <span className="text-xs font-bold text-brand-yellow uppercase tracking-wide font-sans">Professional Background / Cover Letter</span>
                                     </div>
-                                    <p className="text-[11px] font-bold text-gray-400 italic leading-relaxed">
+                                    <p className="text-sm font-medium text-gray-400 leading-relaxed font-sans">
                                         {selectedApp.candidate?.professional_background || 'No background information provided.'}
                                     </p>
                                 </div>
@@ -471,29 +511,39 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-5">
                                         <Clock className="w-5 h-5 text-brand-yellow" />
-                                        <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.3em] italic">Status History</h3>
+                                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider font-sans">Status History</h3>
                                     </div>
                                     {selectedApp.histories?.length > 0 ? (
-                                        <div className="space-y-4 border-l-2 border-brand-yellow/20 pl-6">
+                                        <div className="space-y-5 border-l-2 border-brand-yellow/30 pl-6 ml-2">
                                             {selectedApp.histories.map((h, i) => (
                                                 <div key={i} className="relative">
-                                                    <div className="absolute -left-[31px] top-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-yellow rounded-full shadow"></div>
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">{new Date(h.created_at).toLocaleString()}</span>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <UserCheck className="w-3 h-3 text-brand-yellow" />
-                                                            <span className="text-[8px] font-black text-gray-700 uppercase italic">{h.user?.name || 'System'}</span>
+                                                    <div className="absolute -left-[32px] top-1.5 w-3.5 h-3.5 bg-white border-[3px] border-brand-yellow rounded-full shadow-sm"></div>
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-sans">{new Date(h.created_at).toLocaleString()}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <UserCheck className="w-3.5 h-3.5 text-brand-yellow" />
+                                                            <span className="text-[10px] font-bold text-gray-600 font-sans">{h.user?.name || 'System'}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                                                        <span className="text-[9px] font-black text-brand-yellow bg-gray-900 px-2 py-0.5 rounded uppercase italic">{h.status?.replace('_', ' ')}</span>
-                                                        <p className="text-[10px] font-bold text-gray-500 italic mt-2 leading-snug">"{h.feedback || 'Status updated.'}"</p>
+                                                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                                        <span className="text-[10px] font-bold text-brand-yellow bg-gray-900 px-2.5 py-1 rounded-md uppercase tracking-wide font-sans">{h.status?.replace('_', ' ')}</span>
+                                                        <p className="text-sm font-medium text-gray-600 mt-3 leading-relaxed font-sans">"{h.feedback || 'Status updated.'}"</p>
+                                                        {h.document_path && (
+                                                            <a
+                                                                href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8003'}/storage/${h.document_path}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-4 inline-flex w-fit items-center gap-2 text-xs font-bold text-white bg-gray-800 hover:bg-black px-4 py-2 rounded-lg border border-gray-700 transition-colors font-sans shadow-sm"
+                                                            >
+                                                                <Download className="w-4 h-4 text-brand-yellow" /> Offer Document
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-[10px] text-gray-300 italic font-black uppercase">No history recorded.</p>
+                                        <p className="text-[10px] text-gray-300  font-bold uppercase">No history recorded.</p>
                                     )}
                                 </div>
 
@@ -501,7 +551,7 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                 <div className="pt-6 border-t border-gray-100 shrink-0">
                                     <div className="flex items-center gap-3 mb-5">
                                         <Target className="w-5 h-5 text-brand-yellow" />
-                                        <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.3em] italic">Move to Phase</h3>
+                                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider font-sans">Move to Phase</h3>
                                     </div>
                                     {targetStatus ? (
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -509,33 +559,97 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                                 value={statusFeedback}
                                                 onChange={(e) => setStatusFeedback(e.target.value)}
                                                 placeholder={`Enter notes for ${targetStatus.replace('_', ' ')} phase...`}
-                                                className="w-full bg-gray-50 border border-brand-yellow/30 rounded-2xl p-4 text-[11px] font-black uppercase italic tracking-tight focus:ring-4 focus:ring-brand-yellow/5 focus:outline-none transition-all h-24"
+                                                className="w-full bg-white border border-gray-200 rounded-2xl p-4 text-sm font-medium text-gray-800 focus:ring-4 focus:ring-brand-yellow/20 focus:border-brand-yellow focus:outline-none transition-all h-24 resize-none shadow-sm font-sans"
                                             />
+                                            {targetStatus.startsWith('interview') && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                                    <div className="flex flex-col gap-2">
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Interview Date</label>
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            value={interviewDate}
+                                                            onChange={(e) => setInterviewDate(e.target.value)}
+                                                            className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-brand-yellow/10 focus:border-brand-yellow outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-2">
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Interview Time</label>
+                                                        <input
+                                                            type="time"
+                                                            required
+                                                            value={interviewTime}
+                                                            onChange={(e) => setInterviewTime(e.target.value)}
+                                                            className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-brand-yellow/10 focus:border-brand-yellow outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-2 md:col-span-2">
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Location / Link</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Office address or Video Link"
+                                                            value={interviewLocation}
+                                                            onChange={(e) => setInterviewLocation(e.target.value)}
+                                                            className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-brand-yellow/10 focus:border-brand-yellow outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {targetStatus === 'offer' && (
+                                                <div className="bg-gray-50 rounded-2xl border border-gray-200 p-5">
+                                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-3 font-sans">
+                                                        Attach Offer Document (Optional)
+                                                    </label>
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf,.doc,.docx"
+                                                        onChange={(e) => setOfferDocument(e.target.files[0])}
+                                                        className="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition-colors font-sans"
+                                                    />
+                                                </div>
+                                            )}
                                             <div className="flex gap-3">
-                                                <button onClick={() => setTargetStatus(null)} className="flex-1 py-3.5 border border-gray-100 text-gray-400 font-black text-[9px] uppercase tracking-widest rounded-xl italic hover:bg-gray-50">
+                                                <button onClick={() => setTargetStatus(null)} className="flex-1 py-3.5 border border-gray-200 text-gray-500 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-colors font-sans shadow-sm">
                                                     Cancel
                                                 </button>
-                                                <button disabled={updatingStatus} onClick={() => handleUpdateStatus(selectedApp.id, targetStatus)} className="flex-[2] py-3.5 bg-gray-900 text-brand-yellow font-black text-[9px] uppercase tracking-widest rounded-xl italic hover:bg-black shadow-xl disabled:opacity-50">
+                                                <button disabled={updatingStatus} onClick={() => handleUpdateStatus(selectedApp.id, targetStatus)} className="flex-[2] py-3.5 bg-gray-900 text-brand-yellow font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-black shadow-xl disabled:opacity-50 transition-all font-sans">
                                                     {updatingStatus ? 'Updating...' : 'Authorize Phase Change'}
                                                 </button>
                                             </div>
                                         </motion.div>
                                     ) : (
                                         <div className="grid grid-cols-2 gap-2">
-                                            {statuses.map((s, i) => {
-                                                const currentIdx = statuses.indexOf(selectedApp.status?.toLowerCase());
-                                                const isNext = i === currentIdx + 1;
+                                            {statuses.map((s) => {
+                                                const currentStatus = selectedApp.status?.toLowerCase();
+                                                const isActive = currentStatus === s;
                                                 const isRejected = s === 'rejected';
-                                                const isActive = selectedApp.status?.toLowerCase() === s;
-                                                const isAllowed = isNext || (isRejected && !isActive && selectedApp.status !== 'hired');
+                                                const isPooled = s === 'pooled';
+
+                                                const linearPhases = ['submitted', 'written_test', 'interview_1', 'interview_2', 'offer', 'hired'];
+                                                const currLinearIdx = linearPhases.indexOf(currentStatus);
+                                                const targetLinearIdx = linearPhases.indexOf(s);
+
+                                                let isAllowed = false;
+                                                if (currentStatus === 'hired' || currentStatus === 'rejected') {
+                                                    isAllowed = false;
+                                                } else if (currentStatus === 'pooled') {
+                                                    isAllowed = linearPhases.includes(s) || isRejected;
+                                                } else {
+                                                    if (isRejected || isPooled) {
+                                                        isAllowed = true;
+                                                    } else if (targetLinearIdx === currLinearIdx + 1) {
+                                                        isAllowed = true;
+                                                    }
+                                                }
+
                                                 return (
                                                     <button
                                                         key={s}
                                                         disabled={!isAllowed}
                                                         onClick={() => setTargetStatus(s)}
-                                                        className={`py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border italic flex items-center justify-center gap-1.5 ${isActive ? 'bg-brand-yellow border-brand-yellow text-black shadow-lg' :
-                                                            isAllowed ? 'bg-white text-gray-900 border-gray-200 hover:border-brand-yellow hover:translate-y-[-1px]' :
-                                                                'bg-gray-50 text-gray-300 border-gray-100 opacity-60 cursor-not-allowed'
+                                                        className={`py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border font-sans flex items-center justify-center gap-2 ${isActive ? 'bg-brand-yellow border-brand-yellow text-black shadow-md' :
+                                                            isAllowed ? 'bg-white text-gray-700 border-gray-200 hover:border-brand-yellow hover:translate-y-[-1px] shadow-sm' :
+                                                                'bg-gray-50 text-gray-400 border-gray-100 opacity-60 cursor-not-allowed'
                                                             }`}
                                                     >
                                                         {isActive && <CheckCircle className="w-3 h-3" />}

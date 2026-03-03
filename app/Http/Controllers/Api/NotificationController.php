@@ -34,6 +34,23 @@ class NotificationController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        
+        // Mark as read when viewing details
+        if (!$notification->read_at) {
+            $notification->markAsRead();
+        }
+
+        return response()->json([
+            'notification' => $notification
+        ]);
+    }
+
+    /**
      * Mark all notifications as read.
      */
     public function markAllAsRead()

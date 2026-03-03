@@ -28,7 +28,7 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="bg-white min-h-screen w-full px-8 py-8 lg:px-12 font-['Outfit']">
+        <div className="bg-white min-h-screen w-full px-8 py-8 lg:px-12 ">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {[
                     { label: 'Total Units', val: metrics?.total_applications || 0, change: '+12.4%', up: true, icon: Users },
@@ -47,15 +47,15 @@ const AdminDashboard = () => {
                             <div className="p-3 bg-gray-50 rounded-lg group-hover:bg-gray-900 transition-all duration-300 border border-gray-100">
                                 <stat.icon className="w-4 h-4 text-gray-400 group-hover:text-brand-yellow transition-colors" />
                             </div>
-                            <span className={`text-[9px] font-black px-2 py-1 rounded-md border tracking-wider uppercase ${stat.up
+                            <span className={`text-[9px] font-bold px-2 py-1 rounded-md border tracking-wider uppercase ${stat.up
                                 ? 'bg-green-50 border-green-100 text-green-600'
                                 : 'bg-red-50 border-red-100 text-red-600'
                                 }`}>
                                 {stat.change}
                             </span>
                         </div>
-                        <p className="text-[9px] font-black text-gray-400 group-hover:text-brand-yellow uppercase tracking-widest mb-1 transition-colors italic leading-none">{stat.label}</p>
-                        <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase italic leading-none">{stat.val}</h2>
+                        <p className="text-[9px] font-bold text-gray-400 group-hover:text-brand-yellow uppercase tracking-wider mb-1 transition-colors  leading-none">{stat.label}</p>
+                        <h2 className="text-3xl font-bold text-gray-900 tracking-tight uppercase  leading-none">{stat.val}</h2>
                     </motion.div>
                 ))}
             </div>
@@ -63,10 +63,10 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group">
                     <div className="flex justify-between items-center mb-8 relative z-10">
-                        <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3 uppercase italic">
+                        <h3 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-3 uppercase ">
                             <div className="w-1.5 h-8 bg-brand-yellow rounded-full shadow-[0_0_10px_#FFF200]"></div> Pipeline Vector Hub
                         </h3>
-                        <Link to="/admin/pipeline" className="group flex items-center gap-2.5 bg-gray-900 text-brand-yellow px-5 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-md italic border border-gray-800">
+                        <Link to="/admin/pipeline" className="group flex items-center gap-2.5 bg-gray-900 text-brand-yellow px-5 py-2.5 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-black transition-all shadow-md  border border-gray-800">
                             Examine Cluster <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
@@ -74,10 +74,10 @@ const AdminDashboard = () => {
                         {metrics?.status_breakdown?.map((s, i) => (
                             <div key={i} className="group/item cursor-default">
                                 <div className="flex justify-between items-end mb-3 px-1">
-                                    <span className="text-[11px] font-bold text-gray-900 uppercase tracking-widest italic">{s.status.replace('_', ' ')}</span>
+                                    <span className="text-[11px] font-bold text-gray-900 uppercase tracking-wider ">{s.status.replace('_', ' ')}</span>
                                     <div className="flex items-center gap-2.5">
                                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{s.count} Units active</span>
-                                        <span className="text-[9px] font-black text-gray-900 bg-brand-yellow px-1.5 py-0.5 rounded shadow-sm italic leading-none">{Math.round((s.count / metrics.total_applications) * 100)}%</span>
+                                        <span className="text-[9px] font-bold text-gray-900 bg-brand-yellow px-1.5 py-0.5 rounded shadow-sm  leading-none">{Math.round((s.count / metrics.total_applications) * 100)}%</span>
                                     </div>
                                 </div>
                                 <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-50 shadow-inner">
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-[60px] -mr-20 -mt-20"></div>
 
                         <div className="relative z-10">
-                            <h3 className="text-lg font-black tracking-tight mb-8 flex items-center gap-3 uppercase text-brand-yellow italic">
+                            <h3 className="text-lg font-bold tracking-tight mb-8 flex items-center gap-3 uppercase text-brand-yellow ">
                                 <Cpu className="w-5 h-5" /> Node Integrity Trace
                             </h3>
                             <div className="space-y-6">
@@ -109,8 +109,8 @@ const AdminDashboard = () => {
                                 ].map((s, i) => (
                                     <div key={i} className="flex flex-col gap-2 group/item">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest italic">{s.label}</span>
-                                            <span className="text-[9px] font-black text-brand-yellow flex items-center gap-2 uppercase tracking-widest italic leading-none">
+                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider ">{s.label}</span>
+                                            <span className="text-[9px] font-bold text-brand-yellow flex items-center gap-2 uppercase tracking-wider  leading-none">
                                                 <span className="w-1.5 h-1.5 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_8px_#FFF200]"></span> {s.status}
                                             </span>
                                         </div>
@@ -127,8 +127,8 @@ const AdminDashboard = () => {
                                 <ShieldCheck className="w-6 h-6" />
                             </div>
                             <div className="flex flex-col">
-                                <p className="text-[12px] font-black uppercase tracking-widest text-white italic leading-none">Protocol Secure</p>
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 italic mt-1 leading-none">Authorization Hub active</p>
+                                <p className="text-[12px] font-bold uppercase tracking-wider text-white  leading-none">Protocol Secure</p>
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-gray-500  mt-1 leading-none">Authorization Hub active</p>
                             </div>
                         </div>
                     </div>
@@ -136,10 +136,10 @@ const AdminDashboard = () => {
                     <div className="bg-brand-yellow p-8 rounded-3xl shadow-md group cursor-pointer hover:scale-[1.01] transition-all border border-brand-yellow relative overflow-hidden">
                         <div className="flex justify-between items-center mb-4 relative z-10">
                             <TrendingUp className="w-8 h-8 text-black/20 group-hover:text-black transition-all group-hover:rotate-6" />
-                            <span className="text-[9px] font-black uppercase tracking-widest bg-black/10 px-3 py-1.5 rounded-lg italic text-black">Live Pulse</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider bg-black/10 px-3 py-1.5 rounded-lg  text-black">Live Pulse</span>
                         </div>
-                        <h4 className="text-xl font-black text-black uppercase tracking-tight leading-[0.85] mb-3 relative z-10 italic">Optimization Module</h4>
-                        <p className="text-black/70 text-[10px] font-bold uppercase tracking-wider italic leading-relaxed relative z-10">Global ecosystem synchronization active at optimum capacity thresholds.</p>
+                        <h4 className="text-xl font-bold text-black uppercase tracking-tight leading-[0.85] mb-3 relative z-10 ">Optimization Module</h4>
+                        <p className="text-black/70 text-[10px] font-bold uppercase tracking-wider  leading-relaxed relative z-10">Global ecosystem synchronization active at optimum capacity thresholds.</p>
                     </div>
                 </div>
             </div>
