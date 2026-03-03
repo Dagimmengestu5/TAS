@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, MoreVertical, ChevronRight, X, User, Mail, Phone, Calendar, Briefcase, MapPin, Download, CheckCircle, Zap, Activity, Clock, Target, ArrowRight, ChevronDown, ShieldAlert, MessageSquare, ShieldCheck, UserCheck, Archive } from 'lucide-react';
+import { Search, Filter, MoreVertical, ChevronRight, X, User, Mail, Phone, Calendar, Briefcase, MapPin, Download, CheckCircle, Zap, Activity, Clock, Target, ArrowRight, ChevronDown, ShieldAlert, MessageSquare, ShieldCheck, UserCheck, Archive, Send } from 'lucide-react';
 import api from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 const ApplicationPipeline = ({ statusFilterOverride }) => {
+    const { user: currentUser } = useAuth();
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedApp, setSelectedApp] = useState(null);
@@ -14,7 +16,8 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
     const [showJobFilterDropdown, setShowJobFilterDropdown] = useState(false);
     const [filterCategory, setFilterCategory] = useState('all');
     const [showCategoryFilterDropdown, setShowCategoryFilterDropdown] = useState(false);
-    const [filterProfBackground, setFilterProfBackground] = useState('');
+    const [filterExperience, setFilterExperience] = useState('all');
+    const [showExpFilterDropdown, setShowExpFilterDropdown] = useState(false);
 
     // Status Update State
     const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -24,7 +27,42 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
     const [interviewDate, setInterviewDate] = useState('');
     const [interviewTime, setInterviewTime] = useState('');
     const [interviewLocation, setInterviewLocation] = useState('');
-    const [openMenuId, setOpenMenuId] = useState(null); // tracks which card's menu is open
+    const [openMenuId, setOpenMenuId] = useState(null);
+
+    // Offer Dialog — TA Side
+    const [taDialogMessages, setTaDialogMessages] = useState({});
+    const [taDialogInput, setTaDialogInput] = useState({});
+    const [taDialogLoading, setTaDialogLoading] = useState({});
+    const [taSendingMsg, setTaSendingMsg] = useState({});
+    const [openDialogs, setOpenDialogs] = useState({});
+
+    const loadTaMessages = async (appId) => {
+        setTaDialogLoading(prev => ({ ...prev, [appId]: true }));
+        try {
+            const res = await api.get(`/applications/${appId}/messages`);
+            setTaDialogMessages(prev => ({ ...prev, [appId]: res.data }));
+        } catch (e) { console.error(e); }
+        finally { setTaDialogLoading(prev => ({ ...prev, [appId]: false })); }
+    };
+
+    const sendTaMessage = async (appId) => {
+        const msg = taDialogInput[appId] || '';
+        if (!msg.trim()) return;
+        setTaSendingMsg(prev => ({ ...prev, [appId]: true }));
+        try {
+            const res = await api.post(`/applications/${appId}/messages`, { message: msg });
+            setTaDialogMessages(prev => ({ ...prev, [appId]: [...(prev[appId] || []), res.data] }));
+            setTaDialogInput(prev => ({ ...prev, [appId]: '' }));
+        } catch (e) { alert('Failed to send. Try again.'); }
+        finally { setTaSendingMsg(prev => ({ ...prev, [appId]: false })); }
+    };
+
+    const toggleDialog = (appId) => {
+        setOpenDialogs(prev => ({ ...prev, [appId]: !prev[appId] }));
+        if (!openDialogs[appId]) {
+            loadTaMessages(appId);
+        }
+    };
 
     useEffect(() => {
         const fetchApps = async () => {
@@ -39,6 +77,13 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
         };
         fetchApps();
     }, []);
+
+    // Auto-load dialog messages when an offer-status app is opened
+    useEffect(() => {
+        if (selectedApp && selectedApp.status === 'offer') {
+            loadTaMessages(selectedApp.id);
+        }
+    }, [selectedApp?.id]);
 
     const statuses = ['submitted', 'written_test', 'interview_1', 'interview_2', 'offer', 'rejected', 'hired', 'pooled'];
 
@@ -57,9 +102,14 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
 
         const jobCategory = jobPost.category || req.category || '';
         const matchesCategory = filterCategory === 'all' || jobCategory === filterCategory;
-        const matchesProfBackground = !filterProfBackground || (cand.professional_background?.toLowerCase() || '').includes(filterProfBackground.toLowerCase());
+        const yoe = parseInt(cand.years_of_experience) || 0;
+        const matchesExperience = filterExperience === 'all'
+            || (filterExperience === '0-2' && yoe <= 2)
+            || (filterExperience === '3-5' && yoe >= 3 && yoe <= 5)
+            || (filterExperience === '6-10' && yoe >= 6 && yoe <= 10)
+            || (filterExperience === '10+' && yoe > 10);
 
-        return matchesSearch && matchesStatus && matchesJob && matchesCategory && matchesProfBackground;
+        return matchesSearch && matchesStatus && matchesJob && matchesCategory && matchesExperience;
     });
 
     // Unique job titles for filter
@@ -308,24 +358,38 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                         </AnimatePresence>
                     </div>
 
-                    {/* Professional Background Search Filter */}
-                    <div className="relative flex-1 max-w-[200px]">
-                        <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
-                        <input
-                            type="text"
-                            placeholder="Filter by Background..."
-                            value={filterProfBackground}
-                            onChange={(e) => setFilterProfBackground(e.target.value)}
-                            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-[10px] font-bold uppercase tracking-wider focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow outline-none transition-all"
-                        />
-                        {filterProfBackground && (
-                            <button
-                                onClick={() => setFilterProfBackground('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
-                        )}
+                    {/* Experience Filter Dropdown */}
+                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => { setShowExpFilterDropdown(!showExpFilterDropdown); setShowFilterDropdown(false); setShowJobFilterDropdown(false); }}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-bold uppercase tracking-wider transition-all ${filterExperience !== 'all' ? 'bg-brand-yellow text-black border-brand-yellow' : 'bg-white border-gray-200 text-gray-500 hover:border-brand-yellow hover:text-gray-900'
+                                }`}
+                        >
+                            <Clock className="w-3.5 h-3.5" />
+                            {filterExperience === 'all' ? 'Experience' : `${filterExperience} yrs`}
+                            <ChevronDown className="w-3 h-3" />
+                        </button>
+                        <AnimatePresence>
+                            {showExpFilterDropdown && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    className="absolute top-full mt-2 left-0 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50 min-w-[140px]"
+                                >
+                                    {[['all', 'All Experience'], ['0-2', '0–2 Years'], ['3-5', '3–5 Years'], ['6-10', '6–10 Years'], ['10+', '10+ Years']].map(([val, label]) => (
+                                        <button
+                                            key={val}
+                                            onClick={() => { setFilterExperience(val); setShowExpFilterDropdown(false); }}
+                                            className={`w-full text-left px-4 py-3 text-[9px] font-bold uppercase tracking-wider transition-colors ${filterExperience === val ? 'bg-brand-yellow text-black' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                                }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </div>
@@ -428,8 +492,21 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                                 </div>
                                             </div>
 
-                                            <h3 className="text-base font-bold text-gray-900 tracking-tight mb-0.5 font-sans leading-tight group-hover:text-brand-yellow transition-colors truncate">{cand.name || 'Anonymous Unit'}</h3>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate mb-2">{app.job_posting?.title || app.job_posting?.requisition?.title || 'General Applicaiton'}</p>
+                                            <h3 className="text-base font-bold text-gray-900 tracking-tight mb-1 font-sans leading-tight group-hover:text-brand-yellow transition-colors truncate">{cand.name || 'Anonymous Unit'}</h3>
+
+                                            {/* Professional Background Badge */}
+                                            {cand.professional_background && (
+                                                <div className="flex items-center gap-1.5 mb-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow flex-shrink-0"></div>
+                                                    <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wider truncate">{cand.professional_background}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Job Title */}
+                                            <div className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1 mb-2 max-w-full">
+                                                <Briefcase className="w-3 h-3 text-brand-yellow flex-shrink-0" />
+                                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider truncate">{app.job_posting?.title || app.job_posting?.requisition?.title || 'General Application'}</span>
+                                            </div>
 
                                             {/* Final Step Audit Log */}
                                             <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group-hover:bg-brand-yellow/5 group-hover:border-brand-yellow/10 transition-colors">
@@ -445,8 +522,32 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-sans">Applied</span>
                                                     <span className="text-xs font-bold text-gray-600 font-sans mt-1">{new Date(app.created_at).toLocaleDateString()}</span>
                                                 </div>
-                                                <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow group-hover:scale-110 transition-all duration-500 shadow-sm">
-                                                    <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black transition-all" />
+                                                <div className="flex items-center gap-2">
+                                                    {(app.status?.toLowerCase() === 'offer') && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedApp(app);
+                                                                if (!openDialogs[app.id]) {
+                                                                    toggleDialog(app.id);
+                                                                    // Locally reset count so UI updates immediately
+                                                                    app.unread_messages_count = 0;
+                                                                }
+                                                            }}
+                                                            className={`p-2 rounded-xl transition-all shadow-sm relative ${openDialogs[app.id] ? 'bg-brand-yellow text-black' : 'bg-gray-50 text-brand-yellow hover:bg-gray-900 group-hover:bg-gray-900'}`}
+                                                            title="Offer Conversation"
+                                                        >
+                                                            <MessageSquare className="w-4 h-4" />
+                                                            {app.unread_messages_count > 0 && (
+                                                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-lg border-2 border-white animate-bounce">
+                                                                    {app.unread_messages_count}
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                    <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow group-hover:scale-110 transition-all duration-500 shadow-sm">
+                                                        <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black transition-all" />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -466,10 +567,15 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => { if (!targetStatus) setSelectedApp(null); }}
+                            onClick={() => {
+                                if (!targetStatus) {
+                                    setSelectedApp(null);
+                                }
+                            }}
                             className="absolute inset-0 bg-gray-900/70 backdrop-blur-xl"
                         />
                         <motion.div
+                            layoutId={`modal-${selectedApp.id}`}
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -491,7 +597,30 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                         {selectedApp.candidate?.name?.charAt(0) || '?'}
                                     </div>
                                     <span className="text-xs font-bold text-brand-yellow bg-gray-900 px-3 py-1 rounded-lg uppercase tracking-wide mb-2 font-sans">Candidate Profile</span>
-                                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight font-sans mt-2">{selectedApp.candidate?.name || 'Anonymous'}</h2>
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight font-sans">{selectedApp.candidate?.name || 'Anonymous'}</h2>
+                                        {(selectedApp.status?.toLowerCase() === 'offer') && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (!openDialogs[selectedApp.id]) {
+                                                        toggleDialog(selectedApp.id);
+                                                        // Locally reset count so UI updates immediately
+                                                        selectedApp.unread_messages_count = 0;
+                                                    }
+                                                }}
+                                                className={`p-2 rounded-xl transition-all shadow-md relative ${openDialogs[selectedApp.id] ? 'bg-brand-yellow text-black' : 'bg-gray-900 text-brand-yellow hover:bg-black active:scale-95'}`}
+                                                title="Offer Conversation"
+                                            >
+                                                <MessageSquare className="w-4 h-4" />
+                                                {selectedApp.unread_messages_count > 0 && (
+                                                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-lg border-2 border-white animate-bounce">
+                                                        {selectedApp.unread_messages_count}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
                                     <p className="text-sm font-medium text-gray-500 mt-1">{selectedApp.candidate?.email}</p>
                                 </div>
 
@@ -562,14 +691,26 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                     <h3 className="text-xl font-bold text-gray-900 tracking-tight leading-tight font-sans">
                                         {selectedApp.job_posting?.requisition?.title || '—'}
                                     </h3>
-                                    <div className="flex items-center gap-3 mt-4">
-                                        <div className={`inline-flex px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border font-sans ${selectedApp.status === 'hired' ? 'bg-green-50 text-green-600 border-green-100' :
-                                            selectedApp.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
-                                                'bg-amber-50 text-amber-500 border-amber-100'
-                                            }`}>
-                                            {selectedApp.status?.replace('_', ' ')}
+                                    <div className="flex items-center justify-between mt-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`inline-flex px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border font-sans ${selectedApp.status === 'hired' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                selectedApp.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
+                                                    'bg-amber-50 text-amber-500 border-amber-100'
+                                                }`}>
+                                                {selectedApp.status?.replace('_', ' ')}
+                                            </div>
+                                            <span className="text-xs text-gray-500 font-medium font-sans">Applied {new Date(selectedApp.created_at).toLocaleDateString()}</span>
                                         </div>
-                                        <span className="text-xs text-gray-500 font-medium font-sans">Applied {new Date(selectedApp.created_at).toLocaleDateString()}</span>
+
+                                        {selectedApp.status?.toLowerCase() === 'offer' && (
+                                            <button
+                                                onClick={() => toggleDialog(selectedApp.id)}
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all shadow-lg ${openDialogs[selectedApp.id] ? 'bg-brand-yellow text-black' : 'bg-gray-900 text-brand-yellow hover:bg-black active:scale-95'}`}
+                                            >
+                                                <MessageSquare className="w-4 h-4" />
+                                                {openDialogs[selectedApp.id] ? 'Hide Conversation' : 'Offer Conversation'}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -623,6 +764,8 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                                         <p className="text-[10px] text-gray-300  font-bold uppercase">No history recorded.</p>
                                     )}
                                 </div>
+
+                                {/* Offer Conversation logic moved to standalone modal */}
 
                                 {/* Phase Modulation */}
                                 <div className="pt-6 border-t border-gray-100 shrink-0">
@@ -742,6 +885,138 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* TA Offer Conversation Modal */}
+            <AnimatePresence>
+                {Object.entries(openDialogs).map(([appId, isOpen]) => (
+                    <TaOfferConversationModal
+                        key={appId}
+                        isOpen={isOpen}
+                        onClose={() => toggleDialog(appId)}
+                        appId={appId}
+                        currentUser={currentUser}
+                        applications={applications}
+                        taDialogLoading={taDialogLoading}
+                        taDialogMessages={taDialogMessages}
+                        taDialogInput={taDialogInput}
+                        setTaDialogInput={setTaDialogInput}
+                        sendTaMessage={sendTaMessage}
+                        taSendingMsg={taSendingMsg}
+                    />
+                ))}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+const TaOfferConversationModal = ({ isOpen, onClose, appId, currentUser, applications, taDialogLoading, taDialogMessages, taDialogInput, setTaDialogInput, sendTaMessage, taSendingMsg }) => {
+    if (!isOpen) return null;
+    const app = applications.find(a => a.id.toString() === appId.toString());
+    if (!app || app.status?.toLowerCase() !== 'offer') return null;
+
+    return (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center px-6">
+            {/* Backdrop */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            />
+
+            {/* Modal Content */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                className="relative bg-white w-full max-w-xl rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col max-h-[85vh]"
+            >
+                {/* Header */}
+                <div className="bg-gray-900 px-10 py-8 flex items-center justify-between border-b border-white/5">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-brand-yellow/10 rounded-2xl flex items-center justify-center border border-brand-yellow/20">
+                            <MessageSquare className="w-6 h-6 text-brand-yellow" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-1">Talent Acquisition Terminal</span>
+                            <span className="text-lg font-black text-white uppercase tracking-tight">Offer Conversation</span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group active:scale-90 border border-white/5"
+                    >
+                        <X className="w-6 h-6 text-gray-500 group-hover:text-white" />
+                    </button>
+                </div>
+
+                {/* Message Thread */}
+                <div className="flex-1 overflow-y-auto px-10 py-10 flex flex-col gap-8 bg-gray-50/30">
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-gray-100 mb-2">
+                        <User className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Connected with {app.candidate?.name || 'Candidate'}</span>
+                    </div>
+
+                    {taDialogLoading[appId] ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-6">
+                            <div className="w-10 h-10 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(255,242,0,0.2)]" />
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Establishing Connection...</span>
+                        </div>
+                    ) : (taDialogMessages[appId] || []).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 opacity-20">
+                            <MessageSquare className="w-16 h-16 text-gray-400 mb-6" />
+                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] text-center">No transmissions yet.</p>
+                        </div>
+                    ) : (taDialogMessages[appId] || []).map((msg, i) => {
+                        const isMe = msg.user_id === currentUser?.id;
+                        return (
+                            <div key={i} className={`flex flex-col gap-3 ${isMe ? 'items-end' : 'items-start'}`}>
+                                <div className="flex items-center gap-3 px-2">
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isMe ? 'text-brand-yellow' : 'text-gray-400'}`}>
+                                        {isMe ? 'TA Terminal (You)' : (msg.user?.name || 'Candidate Node')}
+                                    </span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-200"></span>
+                                    <span className="text-[9px] font-bold text-gray-300 uppercase">
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
+                                <div className={`max-w-[85%] px-8 py-5 rounded-[2rem] text-[15px] font-semibold tracking-tight leading-relaxed shadow-sm transition-all duration-300 ${isMe ? 'bg-gray-900 text-brand-yellow rounded-tr-none hover:shadow-brand-yellow/10' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none hover:shadow-xl hover:shadow-black/5'}`}>
+                                    {msg.message}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Input Area */}
+                <div className="p-10 bg-white border-t border-gray-100">
+                    <div className="relative group">
+                        <textarea
+                            rows={3}
+                            placeholder="Type your transmission to the candidate..."
+                            value={taDialogInput[appId] || ''}
+                            onChange={(e) => setTaDialogInput(prev => ({ ...prev, [appId]: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendTaMessage(appId); } }}
+                            className="w-full bg-gray-50/80 border-2 border-gray-100 rounded-[1.5rem] px-8 py-6 text-base font-bold focus:outline-none focus:ring-8 focus:ring-brand-yellow/5 focus:border-brand-yellow/20 transition-all resize-none placeholder:text-gray-300 placeholder:italic"
+                        />
+                        <button
+                            onClick={() => sendTaMessage(appId)}
+                            disabled={taSendingMsg[appId] || !taDialogInput[appId]?.trim()}
+                            className="absolute bottom-5 right-5 flex items-center gap-3 bg-gray-900 text-brand-yellow px-8 py-4 rounded-[1.25rem] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-2xl shadow-black/20"
+                        >
+                            {taSendingMsg[appId] ? (
+                                <div className="w-4 h-4 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    Reply
+                                    <Send className="w-4 h-4" />
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 };

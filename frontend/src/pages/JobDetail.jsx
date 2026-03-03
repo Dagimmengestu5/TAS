@@ -9,12 +9,13 @@ const JobDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [applying, setApplying] = useState(false);
     const [applied, setApplied] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [applyError, setApplyError] = useState('');
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -47,13 +48,15 @@ const JobDetail = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         if (params.get('apply') === 'true' && !loading && job) {
+            // Wait until auth is resolved — avoids flash-redirect on reload
+            if (authLoading) return;
             if (!user) {
                 navigate(`/login?returnUrl=${encodeURIComponent(`/jobs/${id}?apply=true`)}`);
                 return;
             }
             setShowModal(true);
         }
-    }, [location.search, user, loading, job, id, navigate]);
+    }, [location.search, user, authLoading, loading, job, id, navigate]);
 
     useEffect(() => {
         if (user) {
@@ -82,6 +85,7 @@ const JobDetail = () => {
     const handleApply = async (e) => {
         e.preventDefault();
         setApplying(true);
+        setApplyError('');
 
         const data = new FormData();
         Object.keys(formData).forEach(key => data.append(key, formData[key]));
@@ -94,8 +98,13 @@ const JobDetail = () => {
             setApplied(true);
             setShowModal(false);
         } catch (error) {
-            console.error('Application error:', error.response?.data);
-            alert(error.response?.data?.message || 'Application failed. Please check your inputs and try again.');
+            const msg = error.response?.data?.message || 'Application failed. Please check your inputs.';
+            if (msg.toLowerCase().includes('already applied')) {
+                setApplied(true);
+                setShowModal(false);
+            } else {
+                setApplyError(msg);
+            }
         } finally {
             setApplying(false);
         }
@@ -338,6 +347,12 @@ const JobDetail = () => {
                                         <X className="w-5 h-5 text-gray-400" />
                                     </button>
                                 </div>
+
+                                {applyError && (
+                                    <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl px-5 py-4">
+                                        <span className="text-red-500 font-bold text-sm">{applyError}</span>
+                                    </div>
+                                )}
 
                                 <form onSubmit={handleApply} className="space-y-8">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">

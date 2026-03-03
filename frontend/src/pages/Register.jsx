@@ -104,6 +104,8 @@ const Register = () => {
         professional_background: '',
     });
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [generalError, setGeneralError] = useState('');
 
     // Mouse Tracking for Parallax
     const mouseX = useMotionValue(0);
@@ -126,17 +128,45 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrors({});
+        setGeneralError('');
+
+        // --- Client-side validation ---
+        const clientErrors = {};
+        if (formData.phone.length < 9 || formData.phone.length > 13) {
+            clientErrors.phone = 'Phone must be between 9 and 13 digits.';
+        }
+        if (formData.password.length < 8) {
+            clientErrors.password = 'Password must be at least 8 characters.';
+        }
+        if (formData.password !== formData.password_confirmation) {
+            clientErrors.password_confirmation = 'Passwords do not match.';
+        }
+        if (Object.keys(clientErrors).length > 0) {
+            setErrors(clientErrors);
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await register(formData);
             if (response.requires_verification) {
                 navigate('/enter-otp', { state: { email: response.email, message: response.message } });
             } else {
-                alert('Account created successfully.');
                 navigate('/');
             }
         } catch (error) {
-            alert('Registration failed. Please check your information.');
+            const data = error.response?.data;
+            if (error.response?.status === 422 && data?.errors) {
+                // Map Laravel field errors
+                const mapped = {};
+                Object.entries(data.errors).forEach(([field, msgs]) => {
+                    mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
+                });
+                setErrors(mapped);
+            } else {
+                setGeneralError(data?.message || 'Registration failed. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -236,6 +266,12 @@ const Register = () => {
                         <p className="text-gray-500 text-xs">Please fill in your details to get started.</p>
                     </div>
 
+                    {generalError && (
+                        <div className="mb-4 flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                            <span className="text-red-500 text-sm font-semibold">{generalError}</span>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
                             {/* Full Name */}
@@ -245,12 +281,13 @@ const Register = () => {
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="text" required
-                                        className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-gray-900/5 focus:border-gray-900 transition-all placeholder:text-gray-300 shadow-sm"
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.name ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
                                         placeholder="John Doe"
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
+                                {errors.name && <p className="text-xs text-red-500 ml-1">{errors.name}</p>}
                             </div>
 
                             {/* Email */}
@@ -260,33 +297,34 @@ const Register = () => {
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="email" required
-                                        className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-gray-900/5 focus:border-gray-900 transition-all placeholder:text-gray-300 shadow-sm"
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.email ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
                                         placeholder="john@example.com"
                                         value={formData.email}
                                         onChange={e => setFormData({ ...formData, email: e.target.value })}
                                     />
                                 </div>
+                                {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email}</p>}
                             </div>
 
                             {/* Phone */}
                             <div className="space-y-2">
-                                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider ml-1">Phone</label>
+                                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider ml-1">Phone <span className="normal-case font-normal text-gray-400">(9–13 digits)</span></label>
                                 <div className="relative group">
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-black transition-colors" />
                                     <input
                                         type="tel"
                                         required
-                                        pattern="[0-9]*"
                                         inputMode="numeric"
-                                        className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all placeholder:text-gray-300 shadow-sm"
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.phone ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-black/5 focus:border-black'}`}
                                         placeholder="09..."
                                         value={formData.phone}
                                         onChange={e => {
-                                            const val = e.target.value.replace(/\D/g, ''); // Only allow digits
+                                            const val = e.target.value.replace(/\D/g, '');
                                             setFormData({ ...formData, phone: val });
                                         }}
                                     />
                                 </div>
+                                {errors.phone ? <p className="text-xs text-red-500 ml-1">{errors.phone}</p> : <p className="text-[10px] text-gray-400 ml-1">Numbers only, e.g. 0912345678</p>}
                             </div>
 
                             {/* Discipline */}
@@ -315,17 +353,18 @@ const Register = () => {
 
                             {/* Password */}
                             <div className="space-y-2">
-                                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider ml-1">Password</label>
+                                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider ml-1">Password <span className="normal-case font-normal text-gray-400">(min 8 chars)</span></label>
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="password" required
-                                        className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-gray-900/5 focus:border-gray-900 transition-all placeholder:text-gray-300 shadow-sm"
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.password ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
                                         placeholder="••••••••"
                                         value={formData.password}
                                         onChange={e => setFormData({ ...formData, password: e.target.value })}
                                     />
                                 </div>
+                                {errors.password && <p className="text-xs text-red-500 ml-1">{errors.password}</p>}
                             </div>
 
                             {/* Confirm Password */}
@@ -335,12 +374,13 @@ const Register = () => {
                                     <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="password" required
-                                        className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-gray-900/5 focus:border-gray-900 transition-all placeholder:text-gray-300 shadow-sm"
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.password_confirmation ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
                                         placeholder="••••••••"
                                         value={formData.password_confirmation}
                                         onChange={e => setFormData({ ...formData, password_confirmation: e.target.value })}
                                     />
                                 </div>
+                                {errors.password_confirmation && <p className="text-xs text-red-500 ml-1">{errors.password_confirmation}</p>}
                             </div>
                         </div>
 

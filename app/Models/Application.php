@@ -32,4 +32,9 @@ class Application extends Model
     {
         return $this->hasMany(ApplicationStatusHistory::class);
     }
+
+    public function messages()
+    {
+        return $this->hasMany(ApplicationMessage::class);
+    }
 }

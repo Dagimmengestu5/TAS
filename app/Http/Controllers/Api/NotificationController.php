@@ -14,11 +14,13 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $notifications = $user->unreadNotifications;
+        // Return latest 20 notifications (read or unread)
+        $notifications = $user->notifications()->latest()->limit(20)->get();
+        $unreadCount = $user->unreadNotifications()->count();
 
         return response()->json([
             'notifications' => $notifications,
-            'count' => $notifications->count()
+            'count' => $unreadCount
         ]);
     }
 
@@ -45,8 +47,18 @@ class NotificationController extends Controller
             $notification->markAsRead();
         }
 
+        $unreadMessagesCount = 0;
+        $appId = $notification->data['application_id'] ?? null;
+        if ($appId) {
+            $unreadMessagesCount = \App\Models\ApplicationMessage::where('application_id', $appId)
+                ->where('user_id', '!=', Auth::id())
+                ->where('is_read', false)
+                ->count();
+        }
+
         return response()->json([
-            'notification' => $notification
+            'notification' => $notification,
+            'unread_messages_count' => $unreadMessagesCount
         ]);
     }
 

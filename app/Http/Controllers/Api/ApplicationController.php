@@ -151,6 +151,29 @@ class ApplicationController extends Controller
         ], 201);
     }
 
+    public function submitOfferComment(Request $request, Application $application)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:2000',
+        ]);
+
+        $candidate = $application->candidate;
+        $jobTitle = $application->jobPosting?->requisition?->title ?? 'Position';
+
+        // Notify all TA team users
+        $taUsers = \App\Models\User::whereHas('role', fn($q) => $q->whereIn('name', ['ta_team', 'admin']))->get();
+        foreach ($taUsers as $taUser) {
+            $taUser->notify(new \App\Notifications\OfferComment(
+                $request->comment,
+                $candidate->name,
+                $jobTitle,
+                $application->id
+            ));
+        }
+
+        return response()->json(['message' => 'Comment sent to TA team successfully.']);
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -158,11 +181,23 @@ class ApplicationController extends Controller
 
         // If specific scope is 'self', only show user's own applications
         if ($scope === 'self' || ($user->role && $user->role->name === 'candidate')) {
-            $candidate = Candidate::where('user_id', $user->id)->first();
+            $candidate = Candidate::where('user_id', $user->id)
+                ->orWhere('email', $user->email)
+                ->first();
+
             if (!$candidate) return response()->json([]);
+
+            // Auto-link if found by email but user_id is missing
+            if (!$candidate->user_id) {
+                $candidate->update(['user_id' => $user->id]);
+            }
             return response()->json(Application::with(['jobPosting.requisition', 'histories' => function($q) {
                 $q->latest();
-            }])->where('candidate_id', $candidate->id)->get());
+            }])
+            ->withCount(['messages as unread_messages_count' => function($q) use ($user) {
+                $q->where('is_read', false)->where('user_id', '!=', $user->id);
+            }])
+            ->where('candidate_id', $candidate->id)->get());
         }
 
         // Admin and CEO approver can see all applications
@@ -170,7 +205,11 @@ class ApplicationController extends Controller
         if ($user->role && in_array($user->role->name, $globalRoles)) {
             return response()->json(Application::with(['jobPosting.requisition', 'candidate', 'histories' => function($q) {
                 $q->with('user')->latest();
-            }])->get());
+            }])
+            ->withCount(['messages as unread_messages_count' => function($q) use ($user) {
+                $q->where('is_read', false)->where('user_id', '!=', $user->id);
+            }])
+            ->get());
         }
 
         // TA Team and others: scope by their own company's job postings
@@ -183,6 +222,9 @@ class ApplicationController extends Controller
         return response()->json(
             Application::with(['jobPosting.requisition', 'candidate', 'histories' => function($q) {
                 $q->with('user')->latest();
+            }])
+            ->withCount(['messages as unread_messages_count' => function($q) use ($user) {
+                $q->where('is_read', false)->where('user_id', '!=', $user->id);
             }])
             ->whereHas('jobPosting.requisition', function($q) use ($companyId) {
                 $q->where('company_id', $companyId);

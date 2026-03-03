@@ -46,7 +46,7 @@ const NotificationDropdown = () => {
     const handleMarkAsRead = async (id) => {
         try {
             await api.patch(`/notifications/${id}/read`);
-            setNotifications(notifications.filter(n => n.id !== id));
+            setNotifications(notifications.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             console.error('Failed to mark notification as read:', error);
@@ -56,7 +56,7 @@ const NotificationDropdown = () => {
     const handleMarkAllRead = async () => {
         try {
             await api.post('/notifications/mark-all-read');
-            setNotifications([]);
+            setNotifications(notifications.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })));
             setUnreadCount(0);
         } catch (error) {
             console.error('Failed to mark all as read:', error);
@@ -114,20 +114,27 @@ const NotificationDropdown = () => {
                                         <div
                                             key={notification.id}
                                             onClick={() => {
-                                                handleMarkAsRead(notification.id);
+                                                if (!notification.read_at) {
+                                                    handleMarkAsRead(notification.id);
+                                                }
                                                 setIsOpen(false);
                                                 navigate(`/notifications/${notification.id}`);
                                             }}
-                                            className="p-4 hover:bg-gray-50/80 cursor-pointer transition-all group border-l-4 border-transparent hover:border-brand-yellow"
+                                            className={`p-4 hover:bg-gray-50/80 cursor-pointer transition-all group border-l-4 ${!notification.read_at ? 'border-brand-yellow font-medium' : 'border-transparent opacity-60'}`}
                                         >
                                             <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-tight leading-none truncate pr-4">
+                                                <h4 className={`text-sm font-bold uppercase tracking-tight leading-none truncate pr-4 ${!notification.read_at ? 'text-gray-900' : 'text-gray-500'}`}>
                                                     {notification.data.title || 'System Notification'}
                                                 </h4>
-                                                <span className="text-[10px] font-semibold text-gray-400 uppercase  whitespace-nowrap flex items-center gap-1">
-                                                    <Clock className="w-3 h-3" />
-                                                    {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                                                </span>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    {!notification.read_at && (
+                                                        <div className="w-2 h-2 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_8px_rgba(255,242,0,0.6)]"></div>
+                                                    )}
+                                                    <span className="text-[10px] font-semibold text-gray-400 uppercase  whitespace-nowrap flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <p className="text-xs text-gray-500 font-medium leading-relaxed line-clamp-2 uppercase tracking-wide">
                                                 {notification.data.message || 'Transmission received at terminal.'}

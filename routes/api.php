@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RequisitionController;
 use App\Http\Controllers\Api\OrgController;
+use App\Http\Controllers\Api\ApplicationMessageController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -53,6 +54,9 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Applications
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'apply']);
+    Route::post('/applications/{application}/offer-comment', [ApplicationController::class, 'submitOfferComment']);
+    Route::get('/applications/{application}/messages', [ApplicationMessageController::class, 'index']);
+    Route::post('/applications/{application}/messages', [ApplicationMessageController::class, 'store']);
     Route::get('/applications', [ApplicationController::class, 'index']);
     Route::get('/applications/{application}', [ApplicationController::class, 'show']);
     Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus']);

@@ -46,7 +46,7 @@ class AuthController extends Controller
             'message' => 'Registration successful. Please verify your email.',
             'requires_verification' => true,
             'email' => $user->email,
-            'user' => $user->load('role'),
+            'user' => $user->load('role', 'company', 'department'),
         ], 201);
     }
 
@@ -81,7 +81,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user->load('role'),
+            'user' => $user->load('role', 'company', 'department'),
         ]);
     }
 
@@ -150,7 +150,7 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user()->load('role'));
+        return response()->json($request->user()->load('role', 'company', 'department'));
     }
 
     public function resendVerification(Request $request)

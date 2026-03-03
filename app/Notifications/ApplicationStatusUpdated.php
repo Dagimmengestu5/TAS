@@ -32,7 +32,7 @@ class ApplicationStatusUpdated extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -58,9 +58,20 @@ class ApplicationStatusUpdated extends Notification
                     ->line('"' . $feedbackToDisplay . '"');
         }
 
-        $message->action('View My Application Flow', config('app.frontend_url') . '/profile')
-            ->line('You can monitor the full chronological history of your application nodes in your profile.');
-        
+        $isOffer = $this->application->status === 'offer';
+        $profileUrl = config('app.frontend_url') . '/profile';
+
+        $message->action(
+            $isOffer ? 'Reply to Your Offer' : 'View My Application',
+            $profileUrl
+        );
+
+        if ($isOffer) {
+            $message->line('You can accept, negotiate, or ask questions about your offer directly from your profile.');
+        } else {
+            $message->line('You can monitor the full chronological history of your application nodes in your profile.');
+        }
+
         if ($this->documentPath) {
             $message->attach(storage_path('app/public/' . $this->documentPath));
         }
@@ -76,7 +87,11 @@ class ApplicationStatusUpdated extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'application_id' => $this->application->id,
+            'title' => 'Application Status Updated',
+            'message' => 'The status of your application for ' . ($this->application->jobPosting?->requisition?->title ?? 'Position') . ' has been updated to ' . str_replace('_', ' ', $this->application->status),
+            'status' => $this->application->status,
+            'feedback' => $this->feedback
         ];
     }
 }

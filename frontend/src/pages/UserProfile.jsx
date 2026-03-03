@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Shield, Key, Camera, LayoutGrid, Activity, History, ChevronRight, Zap, Target, Lock, Globe, ShieldCheck, Clock, CheckCircle, MessageSquare, Briefcase, LogOut, Bell, Download } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Shield, Key, Camera, LayoutGrid, Activity, History, ChevronRight, Zap, Target, Lock, Globe, ShieldCheck, Clock, CheckCircle, MessageSquare, Briefcase, LogOut, Bell, Download, X, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
 
@@ -11,6 +11,34 @@ const UserProfile = () => {
     const [activeTab, setActiveTab] = useState('profile');
     const [applications, setApplications] = useState([]);
     const [loadingApps, setLoadingApps] = useState(false);
+    const [dialogMessages, setDialogMessages] = useState({});
+    const [dialogInput, setDialogInput] = useState({});
+    const [dialogLoading, setDialogLoading] = useState({});
+    const [sendingMsg, setSendingMsg] = useState({});
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [notifications, setNotifications] = useState([]);
+    const [openDialogs, setOpenDialogs] = useState({});
+
+    // Fetch unread count on mount
+    useEffect(() => {
+        api.get('/notifications')
+            .then(res => {
+                const notifs = res.data?.notifications || [];
+                setNotifications(notifs);
+                setUnreadCount(notifs.length);
+            })
+            .catch(() => { });
+    }, []);
+
+    const handleActiveSignalsClick = async () => {
+        setActiveTab('applications');
+        if (unreadCount > 0) {
+            try {
+                await api.post('/notifications/mark-all-read');
+                setUnreadCount(0);
+            } catch (e) { /* silent */ }
+        }
+    };
 
     useEffect(() => {
         if (activeTab === 'applications') {
@@ -18,7 +46,10 @@ const UserProfile = () => {
                 setLoadingApps(true);
                 try {
                     const response = await api.get('/applications?scope=self');
-                    setApplications(Array.isArray(response.data) ? response.data : []);
+                    const apps = Array.isArray(response.data) ? response.data : [];
+                    setApplications(apps);
+                    // Auto-load messages for offer-status apps
+                    apps.filter(a => a.status?.toLowerCase() === 'offer').forEach(a => loadMessages(a.id));
                 } catch (err) {
                     console.error('Error fetching user apps:', err);
                 } finally {
@@ -28,6 +59,34 @@ const UserProfile = () => {
             fetchUserApps();
         }
     }, [activeTab]);
+
+    const loadMessages = async (appId) => {
+        setDialogLoading(prev => ({ ...prev, [appId]: true }));
+        try {
+            const res = await api.get(`/applications/${appId}/messages`);
+            setDialogMessages(prev => ({ ...prev, [appId]: res.data }));
+        } catch (e) { console.error(e); }
+        finally { setDialogLoading(prev => ({ ...prev, [appId]: false })); }
+    };
+
+    const sendMessage = async (appId) => {
+        const msg = dialogInput[appId] || '';
+        if (!msg.trim()) return;
+        setSendingMsg(prev => ({ ...prev, [appId]: true }));
+        try {
+            const res = await api.post(`/applications/${appId}/messages`, { message: msg });
+            setDialogMessages(prev => ({ ...prev, [appId]: [...(prev[appId] || []), res.data] }));
+            setDialogInput(prev => ({ ...prev, [appId]: '' }));
+        } catch (e) { alert('Failed to send. Try again.'); }
+        finally { setSendingMsg(prev => ({ ...prev, [appId]: false })); }
+    };
+
+    const toggleDialog = (appId) => {
+        setOpenDialogs(prev => ({ ...prev, [appId]: !prev[appId] }));
+        if (!openDialogs[appId]) {
+            loadMessages(appId);
+        }
+    };
 
     return (
         <div className="bg-white min-h-screen w-full selection:bg-brand-yellow/30 px-6 py-6 lg:px-8 ">
@@ -56,10 +115,16 @@ const UserProfile = () => {
                                     Identity Profile
                                 </button>
                                 <button
-                                    onClick={() => setActiveTab('applications')}
-                                    className={`flex-1 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all ${activeTab === 'applications' ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
+                                    onClick={handleActiveSignalsClick}
+                                    className={`flex-1 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all relative ${activeTab === 'applications' ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
                                 >
                                     Active Signals
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-yellow opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-yellow"></span>
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -200,8 +265,39 @@ const UserProfile = () => {
                                                             </div>
                                                             <div className="flex flex-col items-start md:items-end">
                                                                 <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wider mb-1.5 ">Current Phase Modulation</span>
-                                                                <div className="bg-brand-yellow text-black px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-brand-yellow/10 border border-brand-yellow ">
-                                                                    {app.status.replace('_', ' ')}
+                                                                <div className="flex items-center gap-3">
+                                                                    {app.status?.toLowerCase() === 'offer' && (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                toggleDialog(app.id);
+                                                                                // Locally reset count so UI updates immediately
+                                                                                app.unread_messages_count = 0;
+                                                                            }}
+                                                                            className={`p-2 rounded-xl transition-all shadow-md group/chat relative ${openDialogs[app.id] ? 'bg-brand-yellow text-black' : 'bg-gray-900 text-brand-yellow hover:scale-110 active:scale-95'}`}
+                                                                            title="Open Offer Dialog"
+                                                                        >
+                                                                            <MessageSquare className="w-5 h-5" />
+                                                                            {app.unread_messages_count > 0 && (
+                                                                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-lg border-2 border-white animate-bounce">
+                                                                                    {app.unread_messages_count}
+                                                                                </span>
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+                                                                    <div className="flex flex-col items-start gap-2">
+                                                                        <div className="bg-brand-yellow text-black px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-brand-yellow/10 border border-brand-yellow ">
+                                                                            {app.status.replace('_', ' ')}
+                                                                        </div>
+                                                                        {app.status?.toLowerCase() === 'offer' && (
+                                                                            <button
+                                                                                onClick={() => toggleDialog(app.id)}
+                                                                                className="text-[9px] font-bold text-gray-400 hover:text-brand-yellow uppercase tracking-widest flex items-center gap-2 transition-colors group"
+                                                                            >
+                                                                                <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow animate-pulse"></div>
+                                                                                Offer Conversation
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -261,6 +357,8 @@ const UserProfile = () => {
                                                                 ))}
                                                             </div>
                                                         </div>
+
+                                                        {/* Offer Conversation logic moved to top-level modal */}
                                                     </div>
                                                 </div>
                                             ))}
@@ -272,8 +370,135 @@ const UserProfile = () => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Offer Conversation Modal */}
+            <AnimatePresence>
+                {Object.entries(openDialogs).map(([appId, isOpen]) => (
+                    <OfferConversationModal
+                        key={appId}
+                        isOpen={isOpen}
+                        onClose={() => toggleDialog(appId)}
+                        appId={appId}
+                        user={user}
+                        applications={applications}
+                        dialogLoading={dialogLoading}
+                        dialogMessages={dialogMessages}
+                        dialogInput={dialogInput}
+                        setDialogInput={setDialogInput}
+                        sendMessage={sendMessage}
+                        sendingMsg={sendingMsg}
+                    />
+                ))}
+            </AnimatePresence>
         </div>
     );
 };
 
 export default UserProfile;
+
+const OfferConversationModal = ({ isOpen, onClose, appId, user, applications, dialogLoading, dialogMessages, dialogInput, setDialogInput, sendMessage, sendingMsg }) => {
+    if (!isOpen) return null;
+    const app = applications.find(a => a.id.toString() === appId.toString());
+    if (!app || app.status?.toLowerCase() !== 'offer') return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            {/* Backdrop */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+
+            {/* Modal Content */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                className="relative bg-white w-full max-w-xl rounded-[3rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-white/20 flex flex-col max-h-[85vh]"
+            >
+                {/* Header */}
+                <div className="bg-gray-900 px-10 py-8 flex items-center justify-between border-b border-white/5">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-brand-yellow/10 rounded-[1.25rem] flex items-center justify-center border border-brand-yellow/20">
+                            <MessageSquare className="w-6 h-6 text-brand-yellow" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-1">Encrypted Line</span>
+                            <span className="text-lg font-black text-white uppercase tracking-tight">Offer Conversation</span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-4 bg-white/5 hover:bg-white/10 rounded-[1.25rem] transition-all group active:scale-90 border border-white/5"
+                    >
+                        <X className="w-6 h-6 text-gray-500 group-hover:text-white" />
+                    </button>
+                </div>
+
+                {/* Message Thread */}
+                <div className="flex-1 overflow-y-auto px-10 py-10 flex flex-col gap-8 bg-gray-50/50">
+                    {dialogLoading[appId] ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-6">
+                            <div className="w-10 h-10 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(255,242,0,0.2)]" />
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Syncing Protocols...</span>
+                        </div>
+                    ) : (dialogMessages[appId] || []).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 opacity-20">
+                            <MessageSquare className="w-16 h-16 text-gray-400 mb-6" />
+                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] text-center">Awaiting initial transmission.</p>
+                        </div>
+                    ) : (dialogMessages[appId] || []).map((msg, i) => {
+                        const isMe = msg.user_id === user?.id;
+                        return (
+                            <div key={i} className={`flex flex-col gap-3 ${isMe ? 'items-end' : 'items-start'}`}>
+                                <div className="flex items-center gap-3 px-2">
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isMe ? 'text-brand-yellow' : 'text-gray-400'}`}>
+                                        {isMe ? 'User Origin' : (msg.user?.name || 'TA Node')}
+                                    </span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-200"></span>
+                                    <span className="text-[9px] font-bold text-gray-300 uppercase">
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
+                                <div className={`max-w-[85%] px-8 py-5 rounded-[2.5rem] text-[15px] font-semibold tracking-tight leading-relaxed shadow-sm transition-all duration-300 ${isMe ? 'bg-gray-900 text-brand-yellow rounded-tr-none hover:shadow-brand-yellow/10' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none hover:shadow-xl hover:shadow-black/5'}`}>
+                                    {msg.message}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Input Area */}
+                <div className="p-10 bg-white border-t border-gray-100">
+                    <div className="relative group">
+                        <textarea
+                            rows={3}
+                            placeholder="Type your response to the TA team..."
+                            value={dialogInput[appId] || ''}
+                            onChange={(e) => setDialogInput(prev => ({ ...prev, [appId]: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(appId); } }}
+                            className="w-full bg-gray-50/80 border-2 border-gray-100 rounded-[2rem] px-8 py-6 text-base font-bold focus:outline-none focus:ring-8 focus:ring-brand-yellow/5 focus:border-brand-yellow/20 transition-all resize-none placeholder:text-gray-300 placeholder:italic"
+                        />
+                        <button
+                            onClick={() => sendMessage(appId)}
+                            disabled={sendingMsg[appId] || !dialogInput[appId]?.trim()}
+                            className="absolute bottom-5 right-5 flex items-center gap-3 bg-gray-900 text-brand-yellow px-8 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-2xl shadow-black/20"
+                        >
+                            {sendingMsg[appId] ? (
+                                <div className="w-4 h-4 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    Transmit
+                                    <Send className="w-4 h-4" />
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    );
+};

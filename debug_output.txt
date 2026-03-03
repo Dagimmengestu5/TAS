@@ -1,0 +1,28 @@
+USERS:
+U1: dagimmengestu5@gmail.com (UID: 1, Name: dagi man)
+U2: admin@drogasms.com (UID: 2, Name: Admin User)
+U3: dagitach@gmail.com (UID: 3, Name: Dagi Man)
+U4: dagi5tech@gmail.com (UID: 4, Name: USER)
+U5: dagi5tube@gmail.com (UID: 5, Name: user)
+U6: daveman191919@gmail.com (UID: 6, Name: Dave Man)
+U7: dagitech6@gmail.com (UID: 7, Name: Dagi Tech)
+U8: surafeltefera1978@gmail.com (UID: 8, Name: Surafel Tefera)
+U9: tubedagi5@gmail.com (UID: 9, Name: Dagi Tube)
+U10: dagimmengistuz5@gmail.com (UID: 10, Name: ዳግም መንግስቱ)
+U11: hnsh0977@gmail.com (UID: 11, Name: etago)
+
+CANDIDATES:
+C1: dagimmengestu5@gmail.com (LinkedUID: 1, Name: dagi man)
+C2: dagi5tube@gmail.com (LinkedUID: 5, Name: user)
+C3: dagitach@gmail.com (LinkedUID: 3, Name: Dagi Man)
+C4: dagimmengistuz5@gmail.com (LinkedUID: 10, Name: ዳግም መንግስቱ)
+C5: hnsh0977@gmail.com (LinkedUID: 11, Name: etago)
+
+APPLICATIONS:
+A1: CandID 1, Status: pooled
+A2: CandID 1, Status: pooled
+A3: CandID 2, Status: interview_2
+A4: CandID 3, Status: submitted
+A5: CandID 4, Status: hired
+A6: CandID 5, Status: pooled
+A7: CandID 5, Status: offer
