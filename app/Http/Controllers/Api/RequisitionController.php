@@ -109,11 +109,15 @@ class RequisitionController extends Controller
             'jd_path' => $jdPath,
         ]);
 
-        // Notify HR Approver(s) within the SAME company
+        // Notify HR Approver(s) within the SAME company (including multi-company assignments)
         try {
-            $hrApprovers = User::where('role_id', 3)
-                ->where('company_id', $requisition->company_id)
-                ->get();
+            $hrApprovers = User::where('role_id', 6) // hr_approver is 6
+                ->where(function($q) use ($requisition) {
+                    $q->where('company_id', $requisition->company_id)
+                      ->orWhereHas('companies', function($sq) use ($requisition) {
+                          $sq->where('companies.id', $requisition->company_id);
+                      });
+                })->get();
             if ($hrApprovers->count() > 0) {
                 Notification::send($hrApprovers, new RequisitionPendingHR($requisition));
             }
@@ -121,11 +125,15 @@ class RequisitionController extends Controller
             \Log::warning('HR notification failed (non-fatal): ' . $e->getMessage());
         }
 
-        // Notify TA Team (role_id 5) within the SAME company about NEW requisition
+        // Notify TA Team (role_id 4) within the SAME company about NEW requisition
         try {
-            $taTeam = User::where('role_id', 5)
-                ->where('company_id', $requisition->company_id)
-                ->get();
+            $taTeam = User::where('role_id', 4) // ta_team is 4
+                ->where(function($q) use ($requisition) {
+                    $q->where('company_id', $requisition->company_id)
+                      ->orWhereHas('companies', function($sq) use ($requisition) {
+                          $sq->where('companies.id', $requisition->company_id);
+                      });
+                })->get();
             if ($taTeam->count() > 0) {
                 Notification::send($taTeam, new RequisitionCreated($requisition));
             }
@@ -140,8 +148,8 @@ class RequisitionController extends Controller
     {
         $user = $request->user();
 
-        $isHR = $user->role_id == 3;
-        $isCEO = $user->role_id == 6;
+        $isHR = $user->role_id == 6; // hr_approver is 6
+        $isCEO = $user->role_id == 5; // ceo_approver is 5
 
         if ($isHR && $requisition->status === 'pending_hr') { // HR Approves budget
             $requisition->update([
@@ -149,11 +157,15 @@ class RequisitionController extends Controller
                 'budget_status' => 'approved'
             ]);
 
-            // Notify CEO(s) within the SAME company
+            // Notify CEO(s) within the SAME company (including multi-company assignments)
             try {
-                $ceos = User::where('role_id', 6)
-                    ->where('company_id', $requisition->company_id)
-                    ->get();
+                $ceos = User::where('role_id', 5) // ceo_approver is 5
+                    ->where(function($q) use ($requisition) {
+                        $q->where('company_id', $requisition->company_id)
+                          ->orWhereHas('companies', function($sq) use ($requisition) {
+                              $sq->where('companies.id', $requisition->company_id);
+                          });
+                    })->get();
                 if ($ceos->count() > 0) {
                     Notification::send($ceos, new RequisitionPendingCEO($requisition));
                 }
@@ -184,11 +196,15 @@ class RequisitionController extends Controller
                 \Log::warning('Final approval notification failed (non-fatal): ' . $e->getMessage());
             }
 
-            // Notify TA Team (role_id 5) within the SAME company
+            // Notify TA Team (role_id 4) within the SAME company
             try {
-                $taTeam = User::where('role_id', 5)
-                    ->where('company_id', $requisition->company_id)
-                    ->get();
+                $taTeam = User::where('role_id', 4) // ta_team is 4
+                    ->where(function($q) use ($requisition) {
+                        $q->where('company_id', $requisition->company_id)
+                          ->orWhereHas('companies', function($sq) use ($requisition) {
+                              $sq->where('companies.id', $requisition->company_id);
+                          });
+                    })->get();
                 if ($taTeam->count() > 0) {
                     \Illuminate\Support\Facades\Notification::send($taTeam, new RequisitionReadyForPosting($requisition));
                 }
@@ -206,8 +222,8 @@ class RequisitionController extends Controller
     {
         $user = $request->user();
 
-        if (($user->role_id == 3 && $requisition->status === 'pending_hr') ||
-            ($user->role_id == 6 && $requisition->status === 'pending_ceo')) {
+        if (($user->role_id == 6 && $requisition->status === 'pending_hr') ||
+            ($user->role_id == 5 && $requisition->status === 'pending_ceo')) {
             $requisition->update(['status' => 'rejected']);
 
             // Notify Hiring Manager about rejection

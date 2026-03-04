@@ -11,7 +11,16 @@ class Candidate extends Model
     protected $fillable = [
         'user_id', 'name', 'email', 'phone', 'gender', 'age',
         'professional_background', 'years_of_experience', 
-        'cv_path', 'institution_name', 'cgpa', 'current_address'
+        'cv_path', 'institution_name', 'cgpa', 'current_address',
+        'work_experience', 'qualifications', 'certifications', 'languages', 'skills'
+    ];
+
+    protected $casts = [
+        'work_experience' => 'array',
+        'qualifications' => 'array',
+        'certifications' => 'array',
+        'languages' => 'array',
+        'skills' => 'array',
     ];
 
     public function user()

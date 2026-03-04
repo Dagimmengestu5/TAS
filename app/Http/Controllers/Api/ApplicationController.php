@@ -24,6 +24,11 @@ class ApplicationController extends Controller
             'cgpa' => 'nullable|numeric|min:0|max:4',
             'current_address' => 'nullable|string|max:255',
             'cv' => 'nullable|file|mimes:pdf|max:10240', // PDF up to 10MB
+            'work_experience' => 'nullable|array',
+            'qualifications' => 'nullable|array',
+            'certifications' => 'nullable|array',
+            'languages' => 'nullable|array',
+            'skills' => 'nullable|array',
         ]);
 
         $cvPath = null;
@@ -46,6 +51,11 @@ class ApplicationController extends Controller
                 'cgpa' => $request->cgpa,
                 'current_address' => $request->current_address,
                 'cv_path' => $cvPath ?? Candidate::where('email', $request->email)->value('cv_path'),
+                'work_experience' => $request->work_experience,
+                'qualifications' => $request->qualifications,
+                'certifications' => $request->certifications,
+                'languages' => $request->languages,
+                'skills' => $request->skills,
             ]
         );
 

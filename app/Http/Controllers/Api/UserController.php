@@ -31,6 +31,8 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
             'role_id' => 'required|exists:roles,id',
             'company_id' => 'nullable|exists:companies,id',
+            'company_ids' => 'nullable|array',
+            'company_ids.*' => 'exists:companies,id',
             'department_id' => 'nullable|exists:departments,id',
         ]);
 
@@ -43,6 +45,10 @@ class UserController extends Controller
             'company_id' => $validated['company_id'] ?? null,
             'department_id' => $validated['department_id'] ?? null,
         ]);
+
+        if (isset($validated['company_ids'])) {
+            $user->companies()->sync($validated['company_ids']);
+        }
 
         return response()->json($user->load(['role', 'company', 'department']), 201);
     }
@@ -65,11 +71,18 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8',
             'role_id' => 'exists:roles,id',
             'company_id' => 'nullable|exists:companies,id',
+            'company_ids' => 'nullable|array',
+            'company_ids.*' => 'exists:companies,id',
             'department_id' => 'nullable|exists:departments,id',
         ]);
 
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
+        }
+
+        if (isset($validated['company_ids'])) {
+            $user->companies()->sync($validated['company_ids']);
+            unset($validated['company_ids']);
         }
 
         $user->update($validated);

@@ -6,7 +6,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OfferComment extends Notification
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class OfferComment extends Notification implements ShouldQueue
 {
     use Queueable;
 

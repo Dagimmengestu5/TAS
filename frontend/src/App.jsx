@@ -63,8 +63,8 @@ function App() {
         <Route path="/ta/jobs" element={<ProtectedRoute allowedRoles={['admin', 'ta_team']}><JobConsole /></ProtectedRoute>} />
         <Route path="/ta/reports" element={<ProtectedRoute allowedRoles={['admin', 'ta_team']}><TAReport /></ProtectedRoute>} />
         <Route path="/manager/request" element={<ProtectedRoute allowedRoles={['hiring_manager', 'admin', 'hr_approver', 'ceo_approver']}><ManagerPortal /></ProtectedRoute>} />
-        <Route path="/hr/approvals" element={<ProtectedRoute allowedRoles={['hr_approver', 'admin', 'ceo_approver']}><HrDashboard /></ProtectedRoute>} />
-        <Route path="/ceo/approvals" element={<ProtectedRoute allowedRoles={['ceo_approver', 'admin']}><CeoDashboard /></ProtectedRoute>} />
+        <Route path="/hr/approvals" element={<ProtectedRoute allowedRoles={['admin', 'hr_approver']}><HrDashboard /></ProtectedRoute>} />
+        <Route path="/ceo/approvals" element={<ProtectedRoute allowedRoles={['admin', 'ceo_approver']}><CeoDashboard /></ProtectedRoute>} />
         <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetail /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
       </Routes>

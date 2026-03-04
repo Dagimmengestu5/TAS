@@ -67,8 +67,8 @@ const HrDashboard = () => {
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-32">
-                    <div className="w-12 h-12 border-4 border-gray-200 border-t-brand-yellow rounded-full animate-spin mb-6 shadow-xl shadow-brand-yellow/10"></div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider animate-pulse ">Loading Requests...</p>
+                    <div className="w-12 h-12 border-4 border-gray-100 border-t-brand-yellow rounded-full animate-spin mb-6 shadow-xl shadow-brand-yellow/10"></div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider animate-pulse ">Syncing Requisitions...</p>
                 </div>
             ) : requisitions.length === 0 ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-32 bg-white rounded-3xl border border-gray-100 flex flex-col items-center shadow-sm">
@@ -79,83 +79,92 @@ const HrDashboard = () => {
                     <p className="text-gray-400 font-bold uppercase text-[10px] tracking-wider  px-6 max-w-md">There are no pending requests for review at this time.</p>
                 </motion.div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-20">
                     <AnimatePresence>
                         {requisitions.map((req) => (
                             <motion.div
                                 key={req.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-xl transition-all duration-300 group overflow-hidden relative flex flex-col"
+                                className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] transition-all duration-500 group overflow-hidden relative flex flex-col"
                             >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-300"></div>
+                                {/* Premium Status Indicator */}
+                                <div className={`absolute top-0 right-0 px-6 py-2 rounded-bl-[1.5rem] text-[9px] font-black uppercase tracking-[0.2em] z-10 shadow-sm border-l border-b ${req.status === 'pending_hr' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                    req.status === 'pending_ceo' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                        req.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
+                                            req.status === 'approved' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                'bg-gray-50 text-gray-600 border-gray-100'
+                                    }`}>
+                                    {req.status.replace('_', ' ')}
+                                </div>
 
-                                {/* Compact Header */}
-                                <div className="p-5 pb-0 flex justify-between items-start gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="px-2 py-0.5 bg-gray-900 text-brand-yellow rounded text-[9px] font-bold uppercase tracking-wider">{req.department?.name || 'ORG'}</span>
-                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider truncate max-w-[100px]">{req.company?.name || 'HQ'}</span>
+                                <div className="p-8 pb-0">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
+                                            <Briefcase className="w-4 h-4 text-brand-yellow" />
                                         </div>
-                                        <h3 className="text-base font-bold text-gray-900 leading-tight uppercase tracking-tight">{req.title}</h3>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">{req.company?.name || 'Central Unit'}</span>
+                                            <h3 className="text-lg font-black text-gray-900 leading-tight tracking-tight line-clamp-1">{req.title} • {req.department?.name || 'Dept'}</h3>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                        <span className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider border flex items-center gap-1 ${req.status === 'pending_hr' ? 'border-amber-200 bg-amber-50 text-amber-600' :
-                                            req.status === 'pending_ceo' ? 'border-blue-200 bg-blue-50 text-blue-600' :
-                                                req.status === 'rejected' ? 'border-red-200 bg-red-50 text-red-600' :
-                                                    req.status === 'approved' ? 'border-green-200 bg-green-50 text-green-600' :
-                                                        'border-gray-200 bg-gray-50 text-gray-600'
-                                            }`}>
-                                            {req.status === 'pending_hr' ? <Clock className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
-                                            {req.status.replace('_', ' ')}
-                                        </span>
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{new Date(req.created_at).toLocaleDateString()}</span>
+
+                                    {/* Info Grid */}
+                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                        <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/50 flex items-center gap-2.5">
+                                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                                            <span className="text-[10px] font-bold text-gray-600 truncate uppercase tracking-tight">{req.location || 'Remote'}</span>
+                                        </div>
+                                        <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/50 flex items-center gap-2.5">
+                                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                                            <span className="text-[10px] font-bold text-gray-600 truncate uppercase tracking-tight">{req.employment_type || 'Full Time'}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mb-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                                        <span>Candidate Category: {req.category || 'Professional'}</span>
                                     </div>
                                 </div>
 
-                                {/* Compact Body */}
-                                <div className="p-5 flex-1 flex flex-col">
-                                    <div className="flex items-center gap-2 text-gray-600 mb-4 bg-gray-50/50 p-2.5 rounded-xl border border-gray-100">
-                                        <div className="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center text-amber-600"><User className="w-3 h-3" /></div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-0.5">Requested By</span>
-                                            <span className="text-xs font-bold text-gray-900 leading-none">{req.user?.name || 'System Generated'}</span>
+                                {/* Progress Section */}
+                                <div className="px-8 mb-6">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Workflow Phase</span>
+                                        <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">HR Audit</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div className="w-1/3 h-full bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.4)]"></div>
+                                    </div>
+                                </div>
+
+                                <div className="px-8 pb-8 mt-auto flex flex-col gap-4">
+                                    <div className="flex items-center justify-between py-4 border-t border-gray-100/80">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
+                                                <User className="w-3.5 h-3.5" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Author</span>
+                                                <span className="text-[11px] font-bold text-gray-900 leading-none">{req.user?.name || 'System'}</span>
+                                            </div>
                                         </div>
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{new Date(req.created_at).toLocaleDateString()}</span>
                                     </div>
 
-                                    <div className="text-[12px] text-gray-500 line-clamp-2 leading-relaxed mb-4 flex-1">
-                                        {req.description}
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2 mt-auto">
-                                        {req.jd_path && (
-                                            <a href={getStorageUrl(req.jd_path)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-2.5 bg-gray-50 border border-gray-200 rounded-xl hover:border-amber-500 hover:text-amber-600 transition-all group/doc text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                                                <Download className="w-3 h-3" /> JD Document
-                                            </a>
-                                        )}
+                                    <div className="flex gap-3">
                                         <button
                                             onClick={() => setSelectedReq(req)}
-                                            className={`flex items-center justify-center gap-2 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-gray-900 hover:border-gray-900 transition-all group/view ${!req.jd_path ? 'col-span-2' : ''}`}
+                                            className="flex-1 bg-gray-50 border border-gray-100 rounded-xl py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-gray-500 hover:bg-white hover:border-gray-900 hover:text-gray-900 transition-all duration-300 active:scale-95"
                                         >
-                                            <Eye className="w-3 h-3 group-hover/view:scale-110 transition-transform" /> Details
+                                            <Eye className="w-3.5 h-3.5" /> Details
+                                        </button>
+                                        <button
+                                            disabled={req.status !== 'pending_hr'}
+                                            onClick={() => handleAction(req.id, 'approve')}
+                                            className="flex-[1.5] bg-gray-900 text-brand-yellow rounded-xl py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black transition-all duration-300 shadow-xl shadow-gray-900/10 active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed"
+                                        >
+                                            Authorize <ArrowRight className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
-                                </div>
-
-                                {/* Minimal Action Footer */}
-                                <div className="flex gap-2 p-5 pt-0 mt-auto">
-                                    <button
-                                        disabled={req.status !== 'pending_hr'}
-                                        onClick={() => handleAction(req.id, 'approve')}
-                                        className="flex-1 bg-gray-900 text-brand-yellow py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-black transition-all flex items-center justify-center gap-2 disabled:opacity-20 disabled:cursor-not-allowed border border-gray-800"
-                                    >
-                                        {req.status === 'pending_hr' ? 'Approve' : 'Done'} <ShieldCheck className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                        disabled={req.status !== 'pending_hr'}
-                                        onClick={() => handleAction(req.id, 'reject')}
-                                        className="w-12 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                                    >
-                                        <XCircle className="w-4 h-4" />
-                                    </button>
                                 </div>
                             </motion.div>
                         ))}
@@ -163,98 +172,113 @@ const HrDashboard = () => {
                 </div>
             )}
 
-            {/* Details Modal */}
+            {/* Details Modal - Redesigned for HR Executive view */}
             <AnimatePresence>
                 {selectedReq && (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl"
                         onClick={() => setSelectedReq(null)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, y: 30, opacity: 0 }}
-                            className="bg-white rounded-[2.5rem] w-full max-w-2xl p-0 shadow-2xl border border-gray-100 overflow-hidden"
+                            initial={{ scale: 0.95, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 50, opacity: 0 }}
+                            className="bg-white rounded-[3rem] w-full max-w-3xl flex flex-col shadow-[0_50px_100px_rgba(0,0,0,0.5)] border border-white/20 overflow-hidden max-h-[90vh]"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="bg-gray-900 p-10 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-32 rotate-12"></div>
-                                <div className="relative z-10 flex justify-between items-start">
-                                    <div>
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-yellow/10 border border-brand-yellow/20 rounded-full text-[8px] font-bold text-brand-yellow uppercase tracking-wider  mb-4">
-                                            <ShieldCheck className="w-3 h-3" /> Requisition Review
+                            {/* Executive Header */}
+                            <div className="bg-gray-900 p-12 relative overflow-hidden shrink-0">
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-yellow/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 bg-brand-yellow/10 rounded-[1.25rem] flex items-center justify-center border border-brand-yellow/20">
+                                                <ShieldCheck className="w-7 h-7 text-brand-yellow" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-black text-brand-yellow uppercase tracking-[0.4em] mb-2">Talent Authorization Protocol</span>
+                                                <span className="px-4 py-1.5 bg-brand-yellow/10 border border-brand-yellow/20 rounded-full text-[9px] font-bold text-brand-yellow uppercase tracking-widest inline-block w-fit">
+                                                    Sequence #{selectedReq.id} • {selectedReq.status.replace('_', ' ')}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <h2 className="text-3xl font-bold text-white  uppercase tracking-tight leading-none">{selectedReq.title}</h2>
+                                        <button onClick={() => setSelectedReq(null)} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all active:scale-90 border border-white/5">
+                                            <XCircle className="w-6 h-6 text-white/40 group-hover:text-white" />
+                                        </button>
                                     </div>
-                                    <button onClick={() => setSelectedReq(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-colors text-white/40 hover:text-white">
-                                        <XCircle className="w-6 h-6" />
-                                    </button>
+                                    <h2 className="text-4xl font-black text-white uppercase tracking-tight leading-[0.9]">{selectedReq.title}</h2>
                                 </div>
                             </div>
 
-                            <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                        <label className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Category</label>
-                                        <div className="flex items-center gap-2 text-gray-900 font-bold uppercase text-[10px] ">
-                                            <Tag className="w-3.5 h-3.5 text-brand-yellow" />
-                                            {selectedReq.category || 'Standard'}
+                            <div className="flex-1 overflow-y-auto p-12 space-y-12 custom-scrollbar">
+                                {/* Dashboard Grid */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[
+                                        { label: 'Company', value: selectedReq.company?.name, icon: Building2 },
+                                        { label: 'Department', value: selectedReq.department?.name, icon: Briefcase },
+                                        { label: 'Location', value: selectedReq.location, icon: MapPin },
+                                        { label: 'Work Type', value: selectedReq.employment_type, icon: Briefcase },
+                                        { label: 'Unit Category', value: selectedReq.category, icon: Tag },
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="bg-gray-50/80 border border-gray-100 p-5 rounded-[2rem] flex flex-col gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-amber-500">
+                                                <item.icon className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">{item.label}</span>
+                                                <span className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{item.value || 'N/A'}</span>
+                                            </div>
                                         </div>
+                                    ))}
+                                </div>
+
+                                {/* Main Content Section */}
+                                <div className="flex flex-col gap-8">
+                                    <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
+                                        <div className="w-1.5 h-6 bg-brand-yellow rounded-full"></div>
+                                        <h4 className="text-[13px] font-black text-gray-900 uppercase tracking-[0.2em]">Mandate Specification</h4>
                                     </div>
-                                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                        <label className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Location</label>
-                                        <div className="flex items-center gap-2 text-gray-900 font-bold uppercase text-[10px] ">
-                                            <MapPin className="w-3.5 h-3.5 text-brand-yellow" />
-                                            {selectedReq.location || 'Head Office'}
-                                        </div>
+                                    <div className="bg-gray-50/50 border border-gray-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
+                                        <FileText className="absolute -bottom-4 -right-4 w-32 h-32 text-gray-100/50 group-hover:scale-110 transition-transform duration-700" />
+                                        <p className="relative z-10 text-[15px] text-gray-700 font-medium leading-[1.8] whitespace-pre-wrap">
+                                            {selectedReq.description}
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider px-2 flex items-center gap-2 ">
-                                        <FileText className="w-4 h-4 text-brand-yellow" /> Description
-                                    </label>
-                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-[2rem] text-xs text-gray-600 font-medium  leading-relaxed whitespace-pre-wrap">
-                                        {selectedReq.description}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-gray-50">
-                                    <div>
-                                        <label className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block mb-4">Originator</label>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center text-brand-yellow shadow-lg  font-bold text-xs">
-                                                {selectedReq.user?.name?.charAt(0) || 'S'}
-                                            </div>
-                                            <div>
-                                                <p className="text-[11px] font-bold text-gray-900 uppercase  tracking-tight">{selectedReq.user?.name || 'System'}</p>
-                                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">{selectedReq.user?.email}</p>
-                                            </div>
+                                {/* Footer Data */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 py-10 border-t border-gray-100">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-14 h-14 rounded-2xl bg-gray-900 flex items-center justify-center text-brand-yellow text-xl font-black shadow-2xl">
+                                            {selectedReq.user?.name?.charAt(0) || 'S'}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1.5">Submitted By</span>
+                                            <span className="text-lg font-black text-gray-900 tracking-tight leading-none">{selectedReq.user?.name || 'System'}</span>
+                                            <span className="text-[10px] font-bold text-gray-400 mt-1">{selectedReq.user?.email}</span>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block mb-4">Structural Context</label>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider  group">
-                                                <Building2 className="w-3 h-3 text-brand-yellow" />
-                                                <span className="text-gray-900">{selectedReq.company?.name || 'Company'}</span>
-                                                <span className="text-gray-300 mx-1">/</span>
-                                                <span className="text-gray-500">{selectedReq.department?.name || 'Department'}</span>
-                                            </div>
+                                    <div className="flex flex-col justify-center items-end">
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2">Request Lifecycle</span>
+                                        <div className="flex items-center gap-3 bg-gray-50 px-5 py-3 rounded-full border border-gray-100">
+                                            <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                            <span className="text-[11px] font-black text-gray-900 uppercase">Initiated {new Date(selectedReq.created_at).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-10 bg-gray-50 border-t border-gray-100 flex gap-4">
+                            {/* Sticky Action Bar */}
+                            <div className="p-12 bg-white border-t border-gray-100 flex gap-6 shrink-0">
                                 <button
                                     onClick={() => handleAction(selectedReq.id, 'approve')}
-                                    className="flex-[2] bg-gray-900 text-brand-yellow py-5 rounded-2xl font-bold text-[11px] uppercase tracking-wider hover:bg-black transition-all flex items-center justify-center gap-3  shadow-xl shadow-gray-900/10 active:scale-95"
+                                    className="flex-[2] bg-gray-900 text-brand-yellow h-20 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-black transition-all flex items-center justify-center gap-4 shadow-[0_20px_40px_rgba(0,0,0,0.2)] active:scale-95 group"
                                 >
-                                    Approve Request <ShieldCheck className="w-5 h-5 font-bold" />
+                                    Approve Request
+                                    <CheckCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                                 </button>
                                 <button
                                     onClick={() => handleAction(selectedReq.id, 'reject')}
-                                    className="flex-1 bg-white border border-gray-200 text-gray-400 py-5 rounded-2xl font-bold text-[11px] uppercase tracking-wider hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-3  active:scale-95"
+                                    className="flex-1 bg-white border-2 border-gray-100 text-gray-400 h-20 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-3 active:scale-95"
                                 >
                                     Reject <XCircle className="w-5 h-5" />
                                 </button>

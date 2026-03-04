@@ -26,7 +26,9 @@ class ApprovalDashboardController extends Controller
             ->whereIn('status', ['pending_hr', 'pending_ceo', 'approved', 'rejected', 'closed']);
 
         if ($user->role_id !== 1) { // Not Admin
-            $query->where('company_id', $user->company_id);
+            $assignedCompanyIds = $user->companies()->pluck('companies.id')->toArray();
+            $assignedCompanyIds[] = $user->company_id; // Include primary company
+            $query->whereIn('company_id', array_filter(array_unique($assignedCompanyIds)));
         }
 
         $requisitions = $query->orderByRaw("CASE WHEN status = 'pending_hr' THEN 0 ELSE 1 END")
@@ -51,9 +53,14 @@ class ApprovalDashboardController extends Controller
 
         // Notify CEO(s) within the SAME company
         try {
-            $ceos = User::where('role_id', 6)
-                ->where('company_id', $requisition->company_id)
-                ->get();
+            // Include CEOs who have this company in their pivot table OR as primary
+            $ceos = User::where('role_id', 5) // Based on RoleSeeder: ceo_approver is 5
+                ->where(function($q) use ($requisition) {
+                    $q->where('company_id', $requisition->company_id)
+                      ->orWhereHas('companies', function($sq) use ($requisition) {
+                          $sq->where('companies.id', $requisition->company_id);
+                      });
+                })->get();
             if ($ceos->count() > 0) {
                 Notification::send($ceos, new RequisitionPendingCEO($requisition));
             }
@@ -109,7 +116,9 @@ class ApprovalDashboardController extends Controller
             ->whereIn('status', ['pending_ceo', 'approved', 'rejected', 'closed']);
 
         if ($user->role_id !== 1) { // Not Admin
-            $query->where('company_id', $user->company_id);
+            $assignedCompanyIds = $user->companies()->pluck('companies.id')->toArray();
+            $assignedCompanyIds[] = $user->company_id; // Include primary company
+            $query->whereIn('company_id', array_filter(array_unique($assignedCompanyIds)));
         }
 
         $requisitions = $query->orderByRaw("CASE WHEN status = 'pending_ceo' THEN 0 ELSE 1 END")
@@ -142,9 +151,14 @@ class ApprovalDashboardController extends Controller
 
         // Notify TA Team (role_id 5) within the SAME company
         try {
-            $taTeam = User::where('role_id', 5)
-                ->where('company_id', $requisition->company_id)
-                ->get();
+            // Notify TA Team who have this company in their pivot table OR as primary
+            $taTeam = User::where('role_id', 4) // Based on RoleSeeder: ta_team is 4
+                ->where(function($q) use ($requisition) {
+                    $q->where('company_id', $requisition->company_id)
+                      ->orWhereHas('companies', function($sq) use ($requisition) {
+                          $sq->where('companies.id', $requisition->company_id);
+                      });
+                })->get();
             if ($taTeam->count() > 0) {
                 Notification::send($taTeam, new RequisitionReadyForPosting($requisition));
             }

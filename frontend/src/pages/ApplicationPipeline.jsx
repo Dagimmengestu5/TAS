@@ -46,14 +46,41 @@ const ApplicationPipeline = ({ statusFilterOverride }) => {
     };
 
     const sendTaMessage = async (appId) => {
-        const msg = taDialogInput[appId] || '';
-        if (!msg.trim()) return;
+        const msgText = taDialogInput[appId] || '';
+        if (!msgText.trim()) return;
+
+        // Optimistic UI Update
+        const tempId = Date.now();
+        const tempMsg = {
+            id: tempId,
+            user_id: currentUser?.id,
+            message: msgText,
+            created_at: new Date().toISOString(),
+            user: { id: currentUser?.id, name: currentUser?.name },
+            isOptimistic: true
+        };
+
+        setTaDialogMessages(prev => ({
+            ...prev,
+            [appId]: [...(prev[appId] || []), tempMsg]
+        }));
+        setTaDialogInput(prev => ({ ...prev, [appId]: '' }));
         setTaSendingMsg(prev => ({ ...prev, [appId]: true }));
+
         try {
-            const res = await api.post(`/applications/${appId}/messages`, { message: msg });
-            setTaDialogMessages(prev => ({ ...prev, [appId]: [...(prev[appId] || []), res.data] }));
-            setTaDialogInput(prev => ({ ...prev, [appId]: '' }));
-        } catch (e) { alert('Failed to send. Try again.'); }
+            const res = await api.post(`/applications/${appId}/messages`, { message: msgText });
+            setTaDialogMessages(prev => ({
+                ...prev,
+                [appId]: (prev[appId] || []).map(m => m.id === tempId ? res.data : m)
+            }));
+        } catch (e) {
+            setTaDialogMessages(prev => ({
+                ...prev,
+                [appId]: (prev[appId] || []).filter(m => m.id !== tempId)
+            }));
+            setTaDialogInput(prev => ({ ...prev, [appId]: msgText }));
+            alert('Failed to send. Try again.');
+        }
         finally { setTaSendingMsg(prev => ({ ...prev, [appId]: false })); }
     };
 

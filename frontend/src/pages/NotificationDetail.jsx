@@ -68,13 +68,30 @@ const NotificationDetail = () => {
 
     const sendMessage = async () => {
         const appId = notification?.data?.application_id;
-        if (!appId || !msgInput.trim()) return;
+        const msgText = msgInput.trim();
+        if (!appId || !msgText) return;
+
+        // Optimistic UI Update
+        const tempId = Date.now();
+        const tempMsg = {
+            id: tempId,
+            user_id: user?.id,
+            message: msgText,
+            created_at: new Date().toISOString(),
+            user: { id: user?.id, name: user?.name },
+            isOptimistic: true
+        };
+
+        setMessages(prev => [...prev, tempMsg]);
+        setMsgInput('');
         setSending(true);
+
         try {
-            const res = await api.post(`/applications/${appId}/messages`, { message: msgInput });
-            setMessages(prev => [...prev, res.data]);
-            setMsgInput('');
+            const res = await api.post(`/applications/${appId}/messages`, { message: msgText });
+            setMessages(prev => prev.map(m => m.id === tempId ? res.data : m));
         } catch (e) {
+            setMessages(prev => prev.filter(m => m.id !== tempId));
+            setMsgInput(msgText); // Restore input
             alert('Failed to send message. Please try again.');
         } finally {
             setSending(false);

@@ -80,6 +80,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/roles', [UserController::class, 'roles']);
     Route::apiResource('users', UserController::class);
 
+    // Profile Management
+    Route::get('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
+    Route::post('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+
     // Organization Structure
     Route::get('/companies', [OrgController::class, 'companies']);
     Route::post('/companies', [OrgController::class, 'storeCompany']);
