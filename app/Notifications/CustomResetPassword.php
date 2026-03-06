@@ -39,13 +39,13 @@ class CustomResetPassword extends Notification
         $url = config('app.frontend_url', 'http://localhost:5173') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset();
 
         return (new MailMessage)
-            ->subject('Droga group TAS - Password Recovery')
+            ->subject('Droga Group Hub - Password Recovery')
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('You are receiving this email because we received a password reset request for your account at Droga group TAS.')
+            ->line('You are receiving this email because we received a password reset request for your account at Droga Group Hub.')
             ->action('Reset My Password', $url)
             ->line('This password reset link will expire in 60 minutes.')
             ->line('If you did not request a password reset, no further action is required.')
-            ->salutation('Best regards, ' . "\r\n" . 'Droga group TAS Team');
+            ->salutation('Best regards, ' . "\r\n" . 'Droga Group Hub Team');
     }
 
     /**

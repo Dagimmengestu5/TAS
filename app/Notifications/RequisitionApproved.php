@@ -42,7 +42,7 @@ class RequisitionApproved extends Notification
             ->line('The requisition is now transitioning to the Talent Acquisition phase.')
             ->action('View Requisition Status', config('app.frontend_url') . '/manager/request')
             ->line('You can monitor candidate flow and interview status in your Manager Hub.')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

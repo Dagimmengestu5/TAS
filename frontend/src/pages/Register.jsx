@@ -200,7 +200,7 @@ const Register = () => {
                     <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center shadow-lg shadow-black/10">
                         <ShieldCheck className="w-6 h-6 text-[#fff000]" />
                     </div>
-                    <span className="text-xl font-bold text-black tracking-tight">Droga Hub</span>
+                    <span className="text-xl font-bold text-black tracking-tight">Droga Group Hub</span>
                 </motion.div>
 
                 <div className="relative z-10 max-w-lg">
@@ -251,7 +251,7 @@ const Register = () => {
                         <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm">
                             <ShieldCheck className="w-5 h-5 text-[#fff200]" />
                         </div>
-                        <span className="text-lg font-bold text-black tracking-tight">Droga Hub</span>
+                        <span className="text-lg font-bold text-black tracking-tight">Droga Group Hub</span>
                     </div>
                 </div>
 

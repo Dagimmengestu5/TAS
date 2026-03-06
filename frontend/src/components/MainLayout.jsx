@@ -29,7 +29,7 @@ const MainLayout = ({ children }) => {
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-brand-yellow font-bold shadow-lg">D</div>
                         <div className="flex flex-col">
-                            <span className="font-bold text-xs uppercase tracking-tight text-gray-900">Droga Hub</span>
+                            <span className="font-bold text-xs uppercase tracking-tight text-gray-900">Droga Group Hub</span>
                             <span className="text-[10px] font-bold text-brand-yellow uppercase tracking-wider leading-none mt-1">Management OS</span>
                         </div>
                     </div>
@@ -75,7 +75,7 @@ const MainLayout = ({ children }) => {
                                                 location.pathname.includes('/reports') ? 'Analytics Core' :
                                                     location.pathname.includes('/manager') ? 'Manager Hub' :
                                                         location.pathname.includes('/executive') ? 'Executive Layer' :
-                                                            location.pathname.includes('/profile') ? 'System Identity' : 'Management OS'}
+                                                            location.pathname.includes('/profile') ? 'System Identity' : 'Droga Group Hub'}
                                 </h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="w-1.5 h-1.5 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_8px_#FFF200]"></div>

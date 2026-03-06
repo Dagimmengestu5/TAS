@@ -42,7 +42,7 @@ class RequisitionCreated extends Notification
             ->line('It is currently pending HR and CEO approval.')
             ->action('View Requisition', config('app.frontend_url') . '/ta/dashboard')
             ->line('We will notify you once it is fully approved and ready for posting.')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

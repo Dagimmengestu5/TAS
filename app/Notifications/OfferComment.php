@@ -41,7 +41,7 @@ class OfferComment extends Notification implements ShouldQueue
             ->line('**Comment:**')
             ->line('"' . $this->comment . '"')
             ->action('View in TA Dashboard', config('app.frontend_url') . '/ta/dashboard')
-            ->salutation('Best regards, The Droga Group Talent Acquisition System');
+            ->salutation('Best regards, The Droga Group Hub Talent Acquisition System');
     }
 
     public function toArray(object $notifiable): array

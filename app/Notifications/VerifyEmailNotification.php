@@ -31,13 +31,13 @@ class VerifyEmailNotification extends Notification
         $verificationUrl = $this->verificationUrl($notifiable);
 
         return (new MailMessage)
-            ->subject('Verify Your Email Address - Droga Group')
+            ->subject('Verify Your Email Address - Droga Group Hub')
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Welcome to the Droga Group Talent Acquisition System.')
+            ->line('Welcome to the Droga Group Hub Talent Acquisition System.')
             ->line('Please click the button below to verify your email address and activate your node.')
             ->action('Verify Email Address', $verificationUrl)
             ->line('If you did not create an account, no further action is required.')
-            ->salutation('Best regards, The Droga Group Talent Acquisition Team');
+            ->salutation('Best regards, The Droga Group Hub Talent Acquisition Team');
     }
 
     /**

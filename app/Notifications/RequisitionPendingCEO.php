@@ -42,7 +42,7 @@ class RequisitionPendingCEO extends Notification
             ->line('Current Status: Pending CEO Approval')
             ->action('View Approvals Hub', config('app.frontend_url') . '/ceo/approvals')
             ->line('Please review and authorize this requisition to proceed with the recruitment process.')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

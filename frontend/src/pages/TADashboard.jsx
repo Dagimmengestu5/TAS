@@ -117,7 +117,7 @@ const TADashboard = () => {
                     )}
                     {view === 'pool' && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                            <ApplicationPipeline statusFilterOverride="pooled" />
+                            <ApplicationPipeline statusFilterOverride="pooled" layout="grid" />
                         </motion.div>
                     )}
                     {view === 'jobs' && (

@@ -76,7 +76,7 @@ class ApplicationStatusUpdated extends Notification
             $message->attach(storage_path('app/public/' . $this->documentPath));
         }
 
-        return $message->salutation('Best regards, The Droga Group Talent Acquisition Team');
+        return $message->salutation('Best regards, The Droga Group Hub Talent Acquisition Team');
     }
 
     /**

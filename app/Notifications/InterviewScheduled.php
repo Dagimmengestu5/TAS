@@ -60,7 +60,7 @@ class InterviewScheduled extends Notification
                 ->line('**Location:** ' . $location)
                 ->when($this->interview->notes, fn($mail) => $mail->line('**Notes from TA Team:** ' . $this->interview->notes))
                 ->action('View Dashboard', config('app.frontend_url') . '/manager/request')
-                ->salutation('Best regards, The Droga Group Talent Acquisition Team');
+                    ->salutation('Best regards, The Droga Group Hub Talent Acquisition Team');
         }
 
         // Email to Candidate
@@ -76,7 +76,7 @@ class InterviewScheduled extends Notification
         }
 
         return $mail->action('View Application Status', config('app.frontend_url') . '/profile')
-                    ->salutation('Best regards, The Droga Group Talent Acquisition Team');
+                        ->salutation('Best regards, The Droga Group Hub Talent Acquisition Team');
     }
 
     /**

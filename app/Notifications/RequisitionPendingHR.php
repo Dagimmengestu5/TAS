@@ -42,7 +42,7 @@ class RequisitionPendingHR extends Notification
             ->line('Current Status: Pending HR Approval')
             ->action('View Approvals Hub', config('app.frontend_url') . '/hr/approvals')
             ->line('Please review the requisition and JD to proceed with authorization.')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

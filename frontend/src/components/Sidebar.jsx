@@ -74,7 +74,7 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                         <Zap className="w-4 h-4" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-bold text-[13px] tracking-tight uppercase text-gray-900 leading-none">Droga Hub</span>
+                                        <span className="font-bold text-[13px] tracking-tight uppercase text-gray-900 leading-none">Droga Group Hub</span>
                                         <span className="text-[8px] font-bold text-brand-yellow uppercase tracking-wider mt-1.5">Ecosystem OS</span>
                                     </div>
                                 </motion.div>

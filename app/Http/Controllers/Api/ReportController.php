@@ -67,7 +67,7 @@ class ReportController extends Controller
 
         $requisitions = $query->get();
 
-        $reportData = $requisitions->map(function ($req) {
+        $reportData = $requisitions->flatMap(function ($req) {
             $jobPosting = $req->jobPosting;
             $applications = $jobPosting ? $jobPosting->applications : collect();
             
@@ -76,39 +76,45 @@ class ReportController extends Controller
             $hiredCandidates = $applications->filter(function ($app) {
                 return $app->status === 'hired';
             });
-            
-            $hiredNames = $hiredCandidates->map(function ($app) {
-                return $app->candidate->name ?? 'Unknown';
-            })->implode(', ');
 
-            // Calculate average time to hire for this position if there are hires
-            $avgTth = null;
-            if ($hiredCandidates->isNotEmpty()) {
-                $totalDays = 0;
-                foreach ($hiredCandidates as $hiredApp) {
-                    $hiredHistory = $hiredApp->histories->where('status', 'hired')->first();
-                    if ($hiredHistory) {
-                        $diff = $hiredHistory->created_at->diffInDays($hiredApp->created_at);
-                        $totalDays += abs($diff);
-                    }
-                }
-                $avgTth = ceil($totalDays / $hiredCandidates->count());
-            }
+            $ceoApprovalDate = ($req->status === 'approved' || $jobPosting) ? $req->updated_at : null;
 
-            return [
+            $baseData = [
                 'id' => $req->id,
                 'job_title' => $req->title,
                 'hiring_manager' => $req->user->name ?? 'Unknown',
-                'ceo_approval_date' => $req->status === 'approved' ? $req->updated_at->toDateTimeString() : null,
+                'ceo_approval_date' => $ceoApprovalDate ? $ceoApprovalDate->toDateTimeString() : null,
                 'posted_date' => $jobPosting ? $jobPosting->created_at->toDateTimeString() : null,
                 'requisition_date' => $req->created_at->toDateTimeString(),
                 'total_submitted' => $totalSubmitted,
-                'final_hired' => $hiredNames ?: null,
                 'status' => $req->status,
-                'avg_tth' => $avgTth,
             ];
+
+            if ($hiredCandidates->isEmpty()) {
+                return [array_merge($baseData, [
+                    'final_hired' => null,
+                    'avg_tth' => null,
+                ])];
+            }
+
+            return $hiredCandidates->map(function ($hiredApp) use ($baseData, $ceoApprovalDate) {
+                $hiredHistory = $hiredApp->histories->where('status', 'hired')->first();
+                $tth = null;
+                
+                if ($hiredHistory && $ceoApprovalDate) {
+                    $tth = ceil($hiredHistory->created_at->diffInDays($ceoApprovalDate));
+                } elseif ($hiredHistory) {
+                    $tth = ceil($hiredHistory->created_at->diffInDays($hiredApp->created_at));
+                }
+
+                return array_merge($baseData, [
+                    'id' => $baseData['id'] . '-' . $hiredApp->id,
+                    'final_hired' => $hiredApp->candidate->name ?? 'Unknown',
+                    'avg_tth' => $tth !== null ? abs($tth) : null,
+                ]);
+            });
         });
 
-        return response()->json($reportData);
+        return response()->json($reportData->values());
     }
 }

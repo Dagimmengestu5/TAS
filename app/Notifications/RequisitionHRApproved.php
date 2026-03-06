@@ -42,7 +42,7 @@ class RequisitionHRApproved extends Notification
             ->line('The requisition has now moved to the CEO for final operational authorization.')
             ->line('Current Status: Pending CEO Approval')
             ->action('View Requisition Progress', config('app.frontend_url') . '/manager/request')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

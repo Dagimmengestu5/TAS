@@ -1,9 +1,9 @@
-# Talent Acquisition System (TAS) - Droga Group
+# Talent Acquisition System (TAS) - Droga Group Hub
 
 ## 📜 System Documentation
 
 ### 1. Introduction
-This system modernizes and streamlines the recruitment process for Droga Group, providing a seamless experience for both external and internal applicants while centralizing candidate data.
+This system modernizes and streamlines the recruitment process for Droga Group Hub, providing a seamless experience for both external and internal applicants while centralizing candidate data.
 
 ### 2. Core Functional Requirements
 - **Headcount Request**: Hiring managers submit requests and JDs.

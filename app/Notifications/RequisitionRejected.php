@@ -42,7 +42,7 @@ class RequisitionRejected extends Notification
             ->line('Please review the status and feedback in your Manager Hub to address any requirements or concerns.')
             ->action('View Requisition Status', config('app.frontend_url') . '/manager/request')
             ->line('The process for this specific request has been suspended.')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

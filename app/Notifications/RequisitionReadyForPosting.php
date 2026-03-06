@@ -42,7 +42,7 @@ class RequisitionReadyForPosting extends Notification
             ->line('This requisition is now assigned to the TA team for job post initialization.')
             ->action('Create Job Posting', config('app.frontend_url') . '/ta/jobs/create')
             ->line('Please prioritize this posting to maintain hiring velocity.')
-            ->salutation('Best regards, Droga Group Management OS');
+            ->salutation('Best regards, Droga Group Hub');
     }
 
     /**

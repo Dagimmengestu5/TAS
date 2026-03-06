@@ -29,6 +29,7 @@ class ApplicationController extends Controller
             'certifications' => 'nullable|array',
             'languages' => 'nullable|array',
             'skills' => 'nullable|array',
+            'description' => 'required|string',
         ]);
 
         $cvPath = null;
@@ -72,7 +73,7 @@ class ApplicationController extends Controller
 
         // Calculate Intersection Logic for Auto-Pooling
         $initialStatus = 'submitted';
-        $initialFeedback = 'Initial application synchronization.';
+        $initialFeedback = $request->description ?: 'Initial application synchronization.';
 
         $profBgStr = strtolower($request->professional_background ?? '');
         $eduStr = strtolower($request->institution_name ?? '');
@@ -84,19 +85,162 @@ class ApplicationController extends Controller
         $deptStr = strtolower($job->requisition->department->name ?? '');
         $jobContext = $jobTitleStr . ' ' . $jobCategory . ' ' . $deptStr;
 
-        // Define Detailed Category Keywords Dictionary
+        // Define Detailed Category Keywords Dictionary (expanded with education terms, spelling variants, related fields)
         $categoryKeywords = [
-            'information technology (it)' => ['computer', 'science', 'developer', 'software', 'engineering', 'programmer', 'coder', 'system', 'network', 'data', 'web', 'mobile', 'frontend', 'backend', 'fullstack', 'security', 'it', 'tech', 'computing'],
-            'pharmaceutical & healthcare' => ['pharmacy', 'nursing', 'doctor', 'medical', 'healthcare', 'clinical', 'surgeon', 'dentist', 'physician', 'nurse', 'pharmacist', 'hospital'],
-            'pharmacy & clinical operations' => ['pharmacy', 'clinical', 'drug', 'medicine', 'dispensing', 'healthcare', 'pharmacist', 'lab', 'laboratory'],
-            'finance & accounting' => ['accounting', 'accountant', 'finance', 'financial', 'audit', 'auditor', 'tax', 'banking', 'economics', 'commerce', 'cpa', 'acca'],
-            'human resources (hr)' => ['human resources', 'hr', 'recruitment', 'training', 'payroll', 'personnel', 'hiring', 'talent'],
-            'logistics & supply chain' => ['logistics', 'supply chain', 'warehouse', 'distribution', 'inventory', 'transport', 'shipping', 'procurement', 'fleet'],
-            'sales & marketing' => ['sales', 'marketing', 'branding', 'promotion', 'advertisement', 'customer relation', 'merchandising'],
-            'engineering & maintenance' => ['engineering', 'mechanic', 'electrical', 'civil', 'maintenance', 'technician', 'industrial'],
-            'quality assurance & control' => ['quality', 'qa', 'qc', 'standards', 'inspection', 'testing', 'compliance'],
-            'administrative & management' => ['management', 'administration', 'admin', 'secretary', 'office', 'coordinator', 'executive'],
-            'customer service & front office' => ['customer service', 'front office', 'reception', 'support', 'helpdesk', 'client'],
+            'information technology (it)' => [
+                // Core roles
+                'developer', 'software', 'programmer', 'coder', 'engineer', 'engineering',
+                'system', 'systems', 'network', 'networking', 'infrastructure',
+                'frontend', 'backend', 'fullstack', 'full stack', 'devops',
+                'web', 'mobile', 'app', 'application',
+                'database', 'cloud', 'server', 'devops', 'sre',
+                'security', 'cybersecurity', 'cyber', 'penetration', 'hacking',
+                'data', 'analytics', 'machine learning', 'artificial intelligence', 'ai', 'ml',
+                'tech', 'technology', 'technical', 'digital',
+                // Education
+                'computer', 'computing', 'informatics', 'information technology', 'it',
+                'computer science', 'cs', 'software engineering', 'bsc it', 'bsc cs',
+                'electrical engineering', 'electronics',
+                // Common variants/misspellings
+                'programer', 'developper', 'sofware', 'netswork', 'cloude',
+            ],
+            'pharmaceutical & healthcare' => [
+                // Core roles
+                'pharmacy', 'pharmacist', 'pharmacology', 'drug', 'medicine', 'medication',
+                'doctor', 'physician', 'surgeon', 'surgery', 'specialist',
+                'nurse', 'nursing', 'midwife', 'midwifery',
+                'dentist', 'dental', 'dentistry', 'orthodontist',
+                'medical', 'medicine', 'health', 'healthcare', 'clinic', 'clinical',
+                'hospital', 'ward', 'icu', 'emergency', 'radiology', 'radiologist',
+                'therapist', 'therapy', 'physiotherapy', 'physiotherapist',
+                'optometrist', 'optometry', 'ophthalmology',
+                'lab', 'laboratory', 'pathology', 'pathologist',
+                'public health', 'community health', 'epidemiology',
+                'biology', 'biochemistry', 'biomedical',
+                // Education
+                'mbbs', 'md', 'bsc nursing', 'bpharm', 'mpharm', 'pharm',
+                'bsc pharmacy', 'bsc health', 'bsc medicine',
+                'medical school', 'health science', 'health sciences',
+                // Misspellings
+                'pharamcy', 'pharmasist', 'pharmacyst', 'nurce', 'docter',
+                'medicin', 'helath', 'healtcare',
+            ],
+            'pharmacy & clinical operations' => [
+                'pharmacy', 'pharmacist', 'pharmacology', 'pharmaceutical',
+                'clinical', 'clinical trial', 'dispensing', 'dispensary',
+                'drug', 'medication', 'dosage', 'medicine', 'prescription',
+                'lab', 'laboratory', 'specimen', 'pathology', 'microbiology',
+                'healthcare', 'hospital', 'clinic', 'ward',
+                'doctor', 'physician', 'nurse', 'medical', 'health',
+                'bpharm', 'mpharm', 'pharm d', 'pharmd',
+                // Misspellings
+                'pharamcy', 'pharmasist', 'clincial', 'labratory',
+            ],
+            'finance & accounting' => [
+                // Core roles
+                'accounting', 'accountant', 'accounts', 'bookkeeping', 'bookkeeper',
+                'finance', 'financial', 'budget', 'budgeting', 'cost',
+                'audit', 'auditor', 'auditing', 'internal audit', 'external audit',
+                'tax', 'taxation', 'vat', 'revenue',
+                'banking', 'bank', 'investment', 'asset', 'portfolio',
+                'economics', 'economic', 'economist',
+                'commerce', 'commercial',
+                'treasury', 'treasurer',
+                'payroll', 'salary',
+                // Education
+                'cpa', 'acca', 'cfa', 'cima', 'bcom', 'bsc economics',
+                'bsc accounting', 'mba', 'finance degree', 'accounting degree',
+                // Misspellings
+                'acounting', 'finanace', 'auditr', 'bankinng',
+            ],
+            'human resources (hr)' => [
+                'human resources', 'hr', 'hris', 'hrm',
+                'recruitment', 'recruiter', 'talent', 'talent acquisition',
+                'training', 'development', 'learning', 'l&d',
+                'payroll', 'compensation', 'benefits',
+                'personnel', 'people', 'workforce',
+                'hiring', 'onboarding', 'offboarding',
+                'employee relations', 'er', 'labor',
+                'organizational', 'organization',
+                // Education
+                'bsc hr', 'bsc hrd', 'human resource management', 'mba hr',
+                'industrial psychology', 'psychology', 'sociology',
+                // Misspellings
+                'recrutment', 'personel', 'humam resources',
+            ],
+            'logistics & supply chain' => [
+                'logistics', 'logistic', 'supply chain', 'supply',
+                'warehouse', 'warehousing', 'store', 'stores', 'storekeeper',
+                'distribution', 'delivery', 'dispatch',
+                'inventory', 'stock', 'stockkeeper',
+                'transport', 'transportation', 'fleet', 'driver',
+                'shipping', 'freight', 'import', 'export', 'customs',
+                'procurement', 'purchasing', 'buyer', 'sourcing',
+                'clearing', 'forwarding',
+                // Education
+                'bsc logistics', 'supply chain management', 'procurement diploma',
+                // Misspellings
+                'logistcs', 'wharehouse', 'inventery',
+            ],
+            'sales & marketing' => [
+                'sales', 'sale', 'salesperson', 'salesman',
+                'marketing', 'market', 'brand', 'branding',
+                'promotion', 'promotional', 'advertisement', 'advertising',
+                'digital marketing', 'social media', 'seo', 'content',
+                'customer relation', 'crm', 'client',
+                'merchandising', 'merchandiser', 'trade',
+                'business development', 'biz dev', 'bd',
+                'retail', 'wholesale',
+                // Education
+                'bsc marketing', 'ba marketing', 'mba marketing', 'business',
+                // Misspellings
+                'marketting', 'slaes', 'buisness development',
+            ],
+            'engineering & maintenance' => [
+                'engineering', 'engineer',
+                'mechanic', 'mechanical', 'mechanics',
+                'electrical', 'electrician', 'electronics', 'electronic',
+                'civil', 'structural', 'construction', 'architecture',
+                'maintenance', 'repair', 'technician', 'technical',
+                'industrial', 'manufacturing', 'production',
+                'chemical', 'plumbing', 'plumber', 'hvac',
+                'welding', 'welder', 'fabrication',
+                // Education
+                'bsc engineering', 'beng', 'bsc civil', 'bsc mechanical', 'bsc electrical',
+                // Misspellings
+                'enginnering', 'maintenence', 'electrcal',
+            ],
+            'quality assurance & control' => [
+                'quality', 'qa', 'qc', 'qms',
+                'standards', 'iso', 'compliance', 'regulatory',
+                'inspection', 'inspector', 'audit', 'auditor',
+                'testing', 'test', 'verification', 'validation',
+                'process', 'process improvement', 'lean', 'six sigma',
+                // Misspellings
+                'quallity', 'quailty', 'comliance',
+            ],
+            'administrative & management' => [
+                'management', 'manager', 'managing',
+                'administration', 'admin', 'administrative', 'administrator',
+                'secretary', 'executive', 'ea', 'pa', 'personal assistant',
+                'office', 'clerk', 'clerical',
+                'coordinator', 'officer', 'assistant',
+                'director', 'head', 'chief',
+                'operations', 'general',
+                // Education
+                'bba', 'mba', 'public administration', 'bsc management',
+                // Misspellings
+                'managment', 'adminstration', 'secratary',
+            ],
+            'customer service & front office' => [
+                'customer service', 'customer care', 'customer support',
+                'front office', 'reception', 'receptionist',
+                'support', 'helpdesk', 'help desk', 'call center',
+                'client', 'client relations', 'client service',
+                'communication', 'public relations', 'pr',
+                // Misspellings
+                'custmer service', 'recepsion', 'custumer',
+            ],
         ];
 
         // 1. Identify the target keywords for the job's category
@@ -284,5 +428,58 @@ class ApplicationController extends Controller
         return response()->json($application->load(['histories' => function($q) {
             $q->with('user')->latest();
         }]));
+    }
+    public function offerNotify(Request $request, Application $application)
+    {
+        $request->validate([
+            'message' => 'required|string|max:2000',
+        ]);
+
+        // Load relationships
+        $application->load(['candidate', 'jobPosting.requisition.user']);
+
+        $candidateName = $application->candidate->name ?? 'Candidate';
+        $jobTitle      = $application->jobPosting?->requisition?->title ?? 'Position';
+        $senderName    = $request->user()->name;
+        $companyId     = $application->jobPosting?->requisition?->company_id;
+
+        $notifiedUsers = collect();
+
+        // 1. Notify Hiring Manager (requisition creator)
+        $hiringManager = $application->jobPosting?->requisition?->user;
+        if ($hiringManager) {
+            $notifiedUsers->push($hiringManager);
+        }
+
+        // 2. Notify all HR Approvers in same company (role_id 3 = hr_approver)
+        if ($companyId) {
+            $hrApprovers = \App\Models\User::where('role_id', 3)
+                ->where(function ($q) use ($companyId) {
+                    $q->where('company_id', $companyId)
+                      ->orWhereHas('companies', fn($sq) => $sq->where('companies.id', $companyId));
+                })->get();
+            $notifiedUsers = $notifiedUsers->merge($hrApprovers)->unique('id');
+        }
+
+        $notification = new \App\Notifications\OfferStageNotification(
+            $request->message,
+            $candidateName,
+            $jobTitle,
+            $senderName,
+            $application->id
+        );
+
+        foreach ($notifiedUsers as $recipient) {
+            try {
+                $recipient->notify($notification);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning("OfferNotify failed for user {$recipient->id}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message'         => 'Notification sent successfully.',
+            'notified_count'  => $notifiedUsers->count(),
+        ]);
     }
 }

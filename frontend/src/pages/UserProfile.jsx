@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Shield, Key, Camera, LayoutGrid, Activity, History, ChevronRight, Zap, Target, Lock, Globe, ShieldCheck, Clock, CheckCircle, MessageSquare, Briefcase, LogOut, Bell, Download, X, Send } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Shield, Key, Camera, LayoutGrid, Activity, History, ChevronRight, Zap, Target, Lock, Globe, ShieldCheck, Clock, CheckCircle, MessageSquare, Briefcase, LogOut, Bell, Download, X, Send, FileText, Trash2, Edit3, Plus, ExternalLink, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
 
@@ -18,7 +18,8 @@ const UserProfile = () => {
         qualifications: [],
         certifications: [],
         languages: [],
-        skills: []
+        skills: [],
+        experience_certificates: []
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [savingProfile, setSavingProfile] = useState(false);
@@ -30,6 +31,42 @@ const UserProfile = () => {
     const [dialogInput, setDialogInput] = useState({});
     const [dialogLoading, setDialogLoading] = useState({});
     const [sendingMsg, setSendingMsg] = useState({});
+
+    // Change Password State
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({
+        current_password: '',
+        password: '',
+        password_confirmation: ''
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState('');
+
+    const [editingNodes, setEditingNodes] = useState({
+        work_experience: {},
+        qualifications: {},
+        certifications: {},
+        languages: {},
+        skills: {},
+        experience_certificates: {}
+    });
+
+    const toggleEditNode = (key, index) => {
+        if (key === 'certifications' && editingNodes[key]?.[index]) {
+            const cert = profileData[key][index];
+            if (cert.id && (cert.id.startsWith('http') || cert.id.includes('.'))) {
+                if (!cert.id.startsWith('https://')) {
+                    alert('Certification link must start with https://');
+                    return;
+                }
+            }
+        }
+        setEditingNodes(prev => ({
+            ...prev,
+            [key]: { ...prev[key], [index]: !prev[key][index] }
+        }));
+    };
 
     // Fetch profile and notifications
     useEffect(() => {
@@ -50,7 +87,8 @@ const UserProfile = () => {
                         qualifications: profileRes.data.qualifications || [],
                         certifications: profileRes.data.certifications || [],
                         languages: profileRes.data.languages || [],
-                        skills: profileRes.data.skills || []
+                        skills: profileRes.data.skills || [],
+                        experience_certificates: profileRes.data.experience_certificates || []
                     });
                 }
             } catch (err) {
@@ -63,11 +101,58 @@ const UserProfile = () => {
     }, []);
 
     const handleSaveProfile = async () => {
+        for (const cert of profileData.certifications) {
+            if (cert.id && (cert.id.startsWith('http') || cert.id.includes('.'))) {
+                if (!cert.id.startsWith('https://')) {
+                    alert(`Certification link for "${cert.name || 'Untitled'}" must start with https://`);
+                    return;
+                }
+            }
+        }
+
         setSavingProfile(true);
         try {
-            await api.post('/profile', profileData);
+            const formData = new FormData();
+
+            // Append basic fields if needed, but here we focus on the profileData
+            Object.keys(profileData).forEach(key => {
+                if (key === 'experience_certificates' || key === 'certifications') {
+                    // Filter out actual File objects to handle them separately
+                    const itemsWithoutFiles = profileData[key].map(c => ({
+                        ...c,
+                        file: undefined // Ensure file object is not stringified
+                    }));
+                    formData.append(key, JSON.stringify(itemsWithoutFiles));
+
+                    // Append files
+                    profileData[key].forEach((item, index) => {
+                        if (item.file instanceof File) {
+                            formData.append(`${key}_files[${index}]`, item.file);
+                        }
+                    });
+                } else {
+                    formData.append(key, JSON.stringify(profileData[key]));
+                }
+            });
+
+            await api.post('/profile', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             alert('Profile updated successfully!');
+            // Refresh profile to get updated file paths
+            const res = await api.get('/profile');
+            if (res.data) {
+                setProfileData({
+                    work_experience: res.data.work_experience || [],
+                    qualifications: res.data.qualifications || [],
+                    certifications: res.data.certifications || [],
+                    languages: res.data.languages || [],
+                    skills: res.data.skills || [],
+                    experience_certificates: res.data.experience_certificates || []
+                });
+            }
         } catch (err) {
+            console.error('Update failed:', err);
             alert('Failed to update profile.');
         } finally {
             setSavingProfile(false);
@@ -75,16 +160,27 @@ const UserProfile = () => {
     };
 
     const addListEntry = (key, template) => {
-        setProfileData(prev => ({
-            ...prev,
-            [key]: [...prev[key], template]
-        }));
+        setProfileData(prev => {
+            const newList = [...prev[key], template];
+            const newIndex = newList.length - 1;
+            setEditingNodes(editingPrev => ({
+                ...editingPrev,
+                [key]: { ...editingPrev[key], [newIndex]: true }
+            }));
+            return { ...prev, [key]: newList };
+        });
     };
 
     const removeListEntry = (key, index) => {
+        if (!confirm('Are you sure you want to remove this node?')) return;
         setProfileData(prev => ({
             ...prev,
             [key]: prev[key].filter((_, i) => i !== index)
+        }));
+        // Reset editing state for this category on removal to avoid index mismatch
+        setEditingNodes(prev => ({
+            ...prev,
+            [key]: {}
         }));
     };
 
@@ -178,82 +274,101 @@ const UserProfile = () => {
         }
     };
 
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess('');
+        setPasswordLoading(true);
+        try {
+            await api.post('/change-password', passwordForm);
+            setPasswordSuccess('Password updated successfully.');
+            setTimeout(() => {
+                setIsPasswordModalOpen(false);
+                setPasswordSuccess('');
+                setPasswordForm({ current_password: '', password: '', password_confirmation: '' });
+            }, 2000);
+        } catch (err) {
+            setPasswordError(err.response?.data?.message || 'Protocol breach: Update failed.');
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
     return (
         <div className="bg-gray-50 min-h-screen w-full selection:bg-brand-yellow/30 px-6 py-6 lg:px-8 ">
             <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-8">
-                {/* Sidebar Identity Block */}
-                <div className="lg:w-[320px] shrink-0 flex flex-col gap-6">
-                    <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-xl shadow-black/5 relative overflow-hidden group/header">
+                {/* Sidebar */}
+                <div className="lg:w-[280px] shrink-0 flex flex-col gap-5">
+                    <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group/header border-4 border-gray-800">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-brand-yellow/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-gray-800 via-brand-yellow to-gray-800"></div>
+
                         <div className="relative z-10 flex flex-col items-center">
-                            <div className="relative mb-6">
-                                <div className="w-28 h-28 bg-gray-900 rounded-[2.25rem] flex items-center justify-center text-brand-yellow text-4xl font-black shadow-2xl border-4 border-white rotate-3 group-hover/header:rotate-6 transition-transform duration-500 overflow-hidden">
-                                    {user?.name?.charAt(0)}
+                            {/* Avatar */}
+                            <div className="relative mb-5">
+                                <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-brand-yellow to-yellow-400 flex items-center justify-center text-black text-4xl font-black shadow-[0_8px_32px_rgba(255,242,0,0.25)] border-4 border-brand-yellow/30 transition-transform duration-500 group-hover/header:scale-105 group-hover/header:rotate-2">
+                                    {user?.name?.charAt(0)?.toUpperCase()}
                                 </div>
-                                <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-brand-yellow rounded-2xl flex items-center justify-center shadow-2xl border-4 border-white hover:scale-110 transition-all active:scale-95 group-hover/header:translate-y-[-4px]">
-                                    <Camera className="w-5 h-5 text-black" />
-                                </button>
+                                <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-400 border-4 border-gray-900 shadow-lg"></div>
                             </div>
 
-                            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2 leading-none">{user?.name}</h1>
-                            <div className="flex bg-gray-900 text-brand-yellow px-3 py-1.5 rounded-xl gap-2 items-center mb-8">
-                                <ShieldCheck className="w-3 h-3 text-brand-yellow" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{user?.role?.name}</span>
+                            <h1 className="text-xl font-black text-white uppercase tracking-tight mb-1 leading-none text-center">{user?.name}</h1>
+                            <p className="text-[9px] font-bold text-gray-500 mb-3 text-center truncate max-w-[200px]">{user?.email}</p>
+                            <div className="flex bg-black text-brand-yellow px-3 py-1.5 rounded-xl gap-2 items-center mb-6 border border-brand-yellow/20 shadow-inner">
+                                <ShieldCheck className="w-3 h-3" />
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em]">{user?.role?.name}</span>
                             </div>
 
-                            {/* Nav Options */}
+                            {user?.role?.name !== 'candidate' && (
+                                <div className="w-full mb-5 bg-black/40 rounded-2xl p-4 border border-white/5 text-center">
+                                    <p className="text-[10px] font-black text-white uppercase tracking-widest leading-tight">{user?.company?.name || '—'}</p>
+                                    <p className="text-[8px] font-bold text-brand-yellow uppercase tracking-widest mt-1 opacity-80">{user?.department?.name || 'Unassigned Dept.'}</p>
+                                </div>
+                            )}
+
                             <div className="w-full flex flex-col gap-2">
                                 <button
+                                    onClick={() => navigate('/')}
+                                    className="w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-black/50 text-gray-400 hover:bg-black hover:text-brand-yellow border border-white/5 mb-2"
+                                >
+                                    <Globe className="w-4 h-4" />
+                                    Back to Home
+                                </button>
+                                <button
                                     onClick={() => setActiveTab('profile')}
-                                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'profile' ? 'bg-gray-900 text-brand-yellow shadow-2xl shadow-black/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-900'}`}
+                                    className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'profile' ? 'bg-brand-yellow text-black shadow-[0_0_20px_rgba(255,242,0,0.25)]' : 'bg-black/50 text-gray-400 hover:bg-black hover:text-white border border-white/5'}`}
                                 >
                                     <User className="w-4 h-4" />
-                                    Candidate Profile
+                                    My Profile
                                 </button>
                                 <button
                                     onClick={handleActiveSignalsClick}
-                                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all relative ${activeTab === 'applications' ? 'bg-gray-900 text-brand-yellow shadow-2xl shadow-black/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-900'}`}
+                                    className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'applications' ? 'bg-brand-yellow text-black shadow-[0_0_20px_rgba(255,242,0,0.25)]' : 'bg-black/50 text-gray-400 hover:bg-black hover:text-white border border-white/5'}`}
                                 >
                                     <Activity className="w-4 h-4" />
-                                    Active Signals
+                                    Applications
                                     {unreadCount > 0 && (
-                                        <span className="absolute top-4 right-6 flex h-4 w-4">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-yellow opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-4 w-4 bg-brand-yellow text-black text-[8px] font-black items-center justify-center border-2 border-white">{unreadCount}</span>
+                                        <span className="absolute top-1/2 -translate-y-1/2 right-4 flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                                         </span>
                                     )}
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        navigate('/');
-                                        setTimeout(() => logout(), 0);
-                                    }}
-                                    className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-wider bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all transition-all"
+                                    onClick={() => setIsPasswordModalOpen(true)}
+                                    className="w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-black/50 text-gray-400 hover:bg-black hover:text-white border border-white/5"
+                                >
+                                    <Key className="w-4 h-4" />
+                                    Change Password
+                                </button>
+                                <button
+                                    onClick={() => { navigate('/'); setTimeout(() => logout(), 0); }}
+                                    className="w-full mt-3 flex items-center justify-center gap-3 px-5 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
                                 >
                                     <LogOut className="w-4 h-4" />
-                                    Terminate Session
+                                    Log Out
                                 </button>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] shadow-2xl border border-gray-800 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-44 h-44 bg-brand-yellow/5 rounded-full blur-[80px] -mr-20 -mt-20"></div>
-                        <h3 className="text-sm font-black flex items-center gap-3 text-brand-yellow uppercase tracking-[0.2em] mb-8 relative z-10">
-                            <Shield className="w-4 h-4" /> System Core
-                        </h3>
-                        <div className="space-y-8 relative z-10">
-                            {[
-                                { label: 'Auth Gateway', value: 'SHA3-Secure', icon: Lock },
-                                { label: 'Network Node', value: 'LMS-Central', icon: Globe },
-                            ].map((stat, i) => (
-                                <div key={i} className="flex flex-col gap-2">
-                                    <div className="flex items-center justify-between opacity-40">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">{stat.label}</span>
-                                        <stat.icon className="w-3 h-3" />
-                                    </div>
-                                    <p className="text-[12px] font-black uppercase tracking-widest text-brand-yellow/80">{stat.value}</p>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </div>
@@ -269,25 +384,64 @@ const UserProfile = () => {
                                 exit={{ opacity: 0, scale: 0.98, y: -30 }}
                                 className="space-y-8"
                             >
-                                {/* Header Card */}
-                                <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-black/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                    <div>
-                                        <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase leading-none mb-2">Detailed Protocol</h2>
-                                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Update your professional matrix for system evaluation.</p>
-                                    </div>
-                                    <button
-                                        onClick={handleSaveProfile}
-                                        disabled={savingProfile}
-                                        className="bg-brand-yellow text-black px-10 py-5 rounded-[1.5rem] text-[12px] font-black uppercase tracking-[0.2em] hover:bg-gray-900 hover:text-brand-yellow transition-all shadow-2xl shadow-brand-yellow/20 active:scale-95 flex items-center gap-3 disabled:opacity-50"
-                                    >
-                                        {savingProfile ? (
-                                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                        ) : (
-                                            <><ShieldCheck className="w-4 h-4" /> Deploy Updates</>
-                                        )}
-                                    </button>
-                                </div>
+                                {/* Hero Profile Header */}
+                                <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-black"></div>
+                                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-yellow/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
+                                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-yellow/5 rounded-full blur-[60px] pointer-events-none"></div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-yellow/50 to-transparent"></div>
 
+                                    <div className="relative z-10 p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                                        <div className="flex items-center gap-7">
+                                            <div className="relative shrink-0">
+                                                <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-brand-yellow to-yellow-400 rounded-[1.75rem] flex items-center justify-center text-black text-4xl font-black shadow-[0_8px_32px_rgba(255,242,0,0.3)] border-4 border-brand-yellow/30">
+                                                    {user?.name?.charAt(0)?.toUpperCase()}
+                                                </div>
+                                                <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-emerald-400 rounded-full border-4 border-gray-900 shadow-lg"></div>
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.4em] bg-brand-yellow/10 px-3 py-1 rounded-full border border-brand-yellow/20">My Profile</span>
+                                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.3em] bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">Active</span>
+                                                </div>
+                                                <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight uppercase leading-none mb-3">{user?.name}</h2>
+                                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                    {user?.email && (
+                                                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                                            <Mail className="w-3 h-3 text-brand-yellow" /> {user.email}
+                                                        </span>
+                                                    )}
+                                                    {user?.role?.name && (
+                                                        <span className="flex items-center gap-1.5 text-[9px] font-black text-brand-yellow uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-xl border border-brand-yellow/20 ml-2">
+                                                            <ShieldCheck className="w-3 h-3" /> {user.role.name}
+                                                        </span>
+                                                    )}
+                                                    {user?.department?.name && (
+                                                        <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-300 uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-xl border border-white/5">
+                                                            <Briefcase className="w-3 h-3 text-brand-yellow/60" /> {user.department.name}
+                                                        </span>
+                                                    )}
+                                                    {user?.company?.name && (
+                                                        <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-300 uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-xl border border-white/5">
+                                                            <Globe className="w-3 h-3 text-brand-yellow/60" /> {user.company.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleSaveProfile}
+                                            disabled={savingProfile}
+                                            className="shrink-0 bg-brand-yellow text-black px-10 py-5 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] hover:bg-white hover:scale-105 transition-all shadow-[0_10px_30px_rgba(255,242,0,0.3)] active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50 group border-4 border-transparent hover:border-white w-full md:w-auto"
+                                        >
+                                            {savingProfile ? (
+                                                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <><ShieldCheck className="w-5 h-5 group-hover:scale-125 transition-transform" /> Save Changes</>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
                                 {/* Form Sections Grid */}
                                 <div className="grid grid-cols-1 gap-8 pb-12">
 
@@ -295,138 +449,241 @@ const UserProfile = () => {
                                     <SectionCard
                                         title="Work Experience"
                                         icon={<Briefcase />}
-                                        description="Document your tactical deployments."
+                                        description="Add your work experience."
                                         onAdd={() => addListEntry('work_experience', { title: '', company: '', duration: '', description: '' })}
                                     >
                                         <div className="space-y-6">
                                             {profileData.work_experience.map((exp, idx) => (
                                                 <div key={idx} className="bg-gray-50/50 p-8 rounded-[1.5rem] border border-gray-100 relative group/entry hover:bg-white hover:shadow-xl transition-all duration-300">
-                                                    <button onClick={() => removeListEntry('work_experience', idx)} className="absolute top-6 right-6 p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/entry:opacity-100"><X className="w-5 h-5" /></button>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                        <ProfileInput label="Position Title" value={exp.title} onChange={(v) => updateListEntry('work_experience', idx, 'title', v)} placeholder="e.g. Lead Developer" />
-                                                        <ProfileInput label="Corporate Node" value={exp.company} onChange={(v) => updateListEntry('work_experience', idx, 'company', v)} placeholder="e.g. Acme Hub" />
-                                                        <ProfileInput label="Deployment Duration" value={exp.duration} onChange={(v) => updateListEntry('work_experience', idx, 'duration', v)} placeholder="e.g. 2020 - 2024" />
+                                                    <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover/entry:opacity-100 transition-opacity">
+                                                        <button onClick={() => toggleEditNode('work_experience', idx)} className="p-2 text-gray-400 hover:text-brand-yellow transition-colors">
+                                                            {editingNodes.work_experience[idx] ? <CheckCircle className="w-5 h-5" /> : <Edit3 className="w-5 h-5" />}
+                                                        </button>
+                                                        <button onClick={() => removeListEntry('work_experience', idx)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-5 h-5" /></button>
                                                     </div>
-                                                    <div className="mt-6">
-                                                        <ProfileTextarea label="Operational Scope" value={exp.description} onChange={(v) => updateListEntry('work_experience', idx, 'description', v)} placeholder="Describe your key responsibilities and achievements..." />
-                                                    </div>
+
+                                                    {editingNodes.work_experience[idx] ? (
+                                                        <div className="space-y-6 pt-4">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <ProfileInput label="Job Title" value={exp.title} onChange={(v) => updateListEntry('work_experience', idx, 'title', v)} placeholder="e.g. Senior Software Engineer" />
+                                                                <ProfileInput label="Company" value={exp.company} onChange={(v) => updateListEntry('work_experience', idx, 'company', v)} placeholder="e.g. Acme Corp" />
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <ProfileInput label="Duration" value={exp.duration} onChange={(v) => updateListEntry('work_experience', idx, 'duration', v)} placeholder="e.g. 2021 - Present" />
+                                                            </div>
+                                                            <ProfileTextarea label="Description" value={exp.description} onChange={(v) => updateListEntry('work_experience', idx, 'description', v)} placeholder="Describe your responsibilities and achievements..." />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col gap-2 pr-20">
+                                                            <div className="flex bg-gray-900 text-brand-yellow px-3 py-1 rounded-lg w-fit text-[8px] font-black uppercase mb-1">{exp.duration || 'Duration Unknown'}</div>
+                                                            <h4 className="text-xl font-black text-gray-900 uppercase tracking-tight">{exp.title || 'Untitled Experience'}</h4>
+                                                            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none">{exp.company || 'Unknown Company'}</span>
+                                                            <p className="text-[13px] font-medium text-gray-600 mt-4 leading-relaxed line-clamp-2">{exp.description || 'No description provided.'}</p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
-                                            {profileData.work_experience.length === 0 && <EmptyState text="No experience nodes added." />}
                                         </div>
                                     </SectionCard>
 
                                     {/* 2. Qualification Detail */}
                                     <SectionCard
-                                        title="Qualification Detail"
+                                        title="Educational Background"
                                         icon={<History />}
-                                        description="Scholastic authorization records."
+                                        description="Educational background and degrees."
                                         onAdd={() => addListEntry('qualifications', { degree: '', institution: '', year: '' })}
                                     >
                                         <div className="space-y-6">
                                             {profileData.qualifications.map((qual, idx) => (
                                                 <div key={idx} className="bg-gray-50/50 p-8 rounded-[1.5rem] border border-gray-100 relative group/entry hover:bg-white hover:shadow-xl transition-all duration-300">
-                                                    <button onClick={() => removeListEntry('qualifications', idx)} className="absolute top-6 right-6 p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/entry:opacity-100"><X className="w-5 h-5" /></button>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                        <ProfileInput label="Certification Grade" value={qual.degree} onChange={(v) => updateListEntry('qualifications', idx, 'degree', v)} placeholder="e.g. B.Sc. CompSci" />
-                                                        <ProfileInput label="Education Hub" value={qual.institution} onChange={(v) => updateListEntry('qualifications', idx, 'institution', v)} placeholder="e.g. Tech University" />
-                                                        <ProfileInput label="Authorization Year" value={qual.year} onChange={(v) => updateListEntry('qualifications', idx, 'year', v)} placeholder="e.g. 2019" />
+                                                    <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover/entry:opacity-100 transition-opacity">
+                                                        <button onClick={() => toggleEditNode('qualifications', idx)} className="p-2 text-gray-400 hover:text-brand-yellow transition-colors">
+                                                            {editingNodes.qualifications[idx] ? <CheckCircle className="w-5 h-5" /> : <Edit3 className="w-5 h-5" />}
+                                                        </button>
+                                                        <button onClick={() => removeListEntry('qualifications', idx)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-5 h-5" /></button>
                                                     </div>
+
+                                                    {editingNodes.qualifications[idx] ? (
+                                                        <div className="space-y-6 pt-4">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <ProfileInput label="Degree Type" value={qual.degree} onChange={(v) => updateListEntry('qualifications', idx, 'degree', v)} placeholder="e.g. Bachelor of Science" />
+                                                                <ProfileInput label="Subject of Study" value={qual.subject} onChange={(v) => updateListEntry('qualifications', idx, 'subject', v)} placeholder="e.g. Computer Science" />
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                                <ProfileInput label="University/Institution" value={qual.institution} onChange={(v) => updateListEntry('qualifications', idx, 'institution', v)} placeholder="e.g. MIT" />
+                                                                <ProfileInput label="Cumulative GPA" value={qual.gpa} onChange={(v) => updateListEntry('qualifications', idx, 'gpa', v)} placeholder="e.g. 3.8/4.0" />
+                                                                <ProfileInput label="Graduation Date" type="date" value={qual.graduation_date} onChange={(v) => updateListEntry('qualifications', idx, 'graduation_date', v)} placeholder="YYYY-MM-DD" />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex bg-gray-900 text-brand-yellow px-3 py-1 rounded-lg w-fit text-[8px] font-black uppercase mb-1">{qual.graduation_date || 'Date Unknown'}</div>
+                                                            <h4 className="text-xl font-black text-gray-900 uppercase tracking-tight line-clamp-1">{qual.degree || 'Untitled Degree'} - {qual.subject || 'No Subject'}</h4>
+                                                            <div className="flex items-center gap-4 mt-1">
+                                                                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none">{qual.institution || 'Unknown Institution'}</span>
+                                                                {qual.gpa && (
+                                                                    <>
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-200"></span>
+                                                                        <span className="text-[10px] font-black text-brand-yellow uppercase tracking-widest">GPA: {qual.gpa}</span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
-                                            {profileData.qualifications.length === 0 && <EmptyState text="No qualification nodes added." />}
                                         </div>
                                     </SectionCard>
 
                                     {/* 3. Certification Detail */}
                                     <SectionCard
-                                        title="Certification Detail"
+                                        title="Certifications"
                                         icon={<ShieldCheck />}
-                                        description="Specialized authorization keys."
+                                        description="Professional certificates and licenses."
                                         onAdd={() => addListEntry('certifications', { name: '', issuer: '', id: '' })}
                                     >
                                         <div className="space-y-6">
                                             {profileData.certifications.map((cert, idx) => (
                                                 <div key={idx} className="bg-gray-50/50 p-8 rounded-[1.5rem] border border-gray-100 relative group/entry hover:bg-white hover:shadow-xl transition-all duration-300">
-                                                    <button onClick={() => removeListEntry('certifications', idx)} className="absolute top-6 right-6 p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/entry:opacity-100"><X className="w-5 h-5" /></button>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                        <ProfileInput label="Credential Name" value={cert.name} onChange={(v) => updateListEntry('certifications', idx, 'name', v)} placeholder="e.g. AWS Solutions Architect" />
-                                                        <ProfileInput label="Issuing Authority" value={cert.issuer} onChange={(v) => updateListEntry('certifications', idx, 'issuer', v)} placeholder="e.g. Amazon" />
-                                                        <ProfileInput label="Key Identifier" value={cert.id} onChange={(v) => updateListEntry('certifications', idx, 'id', v)} placeholder="e.g. CERT-909" />
+                                                    <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover/entry:opacity-100 transition-opacity">
+                                                        <button onClick={() => toggleEditNode('certifications', idx)} className="p-2 text-gray-400 hover:text-brand-yellow transition-colors">
+                                                            {editingNodes.certifications[idx] ? <CheckCircle className="w-5 h-5" /> : <Edit3 className="w-5 h-5" />}
+                                                        </button>
+                                                        <button onClick={() => removeListEntry('certifications', idx)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-5 h-5" /></button>
                                                     </div>
+
+                                                    {editingNodes.certifications[idx] ? (
+                                                        <div className="space-y-6 pt-4">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <ProfileInput label="Certificate Name" value={cert.name} onChange={(v) => updateListEntry('certifications', idx, 'name', v)} placeholder="e.g. AWS Solutions Architect" />
+                                                                <ProfileInput label="Issuing Authority" value={cert.issuer} onChange={(v) => updateListEntry('certifications', idx, 'issuer', v)} placeholder="e.g. Amazon" />
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <ProfileInput label="Credential ID / URL" value={cert.id} onChange={(v) => updateListEntry('certifications', idx, 'id', v)} placeholder="e.g. CERT-909 or URL" />
+                                                                <div className="flex flex-col gap-3">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Certificate Document</label>
+                                                                    <div className="relative group/upload">
+                                                                        <input
+                                                                            type="file"
+                                                                            accept=".pdf,.jpg,.jpeg,.png"
+                                                                            onChange={(e) => updateListEntry('certifications', idx, 'file', e.target.files[0])}
+                                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                                        />
+                                                                        <div className="flex items-center gap-4 bg-gray-100 p-4 rounded-2xl border-2 border-dashed border-gray-200 group-hover/upload:border-brand-yellow/30 group-hover/upload:bg-gray-50 transition-all">
+                                                                            <Upload className="w-5 h-5 text-gray-400" />
+                                                                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-widest">{cert.file ? cert.file.name : (cert.file_path ? 'Replace Current File' : 'Choose File')}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center justify-between pr-20">
+                                                            <div className="flex flex-col gap-2">
+                                                                {cert.id && <div className="flex bg-brand-yellow text-black px-3 py-1 rounded-lg w-fit text-[8px] font-black uppercase mb-1">{cert.id}</div>}
+                                                                <h4 className="text-xl font-black text-gray-900 uppercase tracking-tight">{cert.name || 'Untitled Credential'}</h4>
+                                                                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none">{cert.issuer || 'Unknown Authority'}</span>
+                                                            </div>
+                                                            {(cert.file_path || (cert.id && (cert.id.startsWith('http') || cert.id.includes('.')))) && (
+                                                                <a
+                                                                    href={cert.file_path ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}/storage/${cert.file_path}` : cert.id}
+                                                                    target="_blank" rel="noopener noreferrer"
+                                                                    className="p-4 bg-gray-900 text-brand-yellow rounded-2xl hover:bg-black transition-all shadow-xl"
+                                                                >
+                                                                    <ExternalLink className="w-5 h-5" />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
-                                            {profileData.certifications.length === 0 && <EmptyState text="No certification nodes added." />}
                                         </div>
                                     </SectionCard>
 
                                     {/* 4. Skills & Languages */}
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                         <SectionCard
-                                            title="Skill Matrix"
+                                            title="Skills"
                                             icon={<Zap />}
-                                            description="Technical capability strings."
+                                            description="Professional skills and proficiencies."
                                             onAdd={() => addListEntry('skills', { name: '', level: 'Intermediate' })}
                                         >
                                             <div className="space-y-4">
                                                 {profileData.skills.map((skill, idx) => (
-                                                    <div key={idx} className="flex items-center gap-4 bg-gray-50/80 p-4 rounded-2xl border border-gray-100 group/entry">
-                                                        <input
-                                                            className="flex-1 bg-transparent border-none text-[13px] font-black uppercase tracking-wider text-gray-900 focus:ring-0 placeholder:text-gray-300"
-                                                            value={skill.name}
-                                                            onChange={(e) => updateListEntry('skills', idx, 'name', e.target.value)}
-                                                            placeholder="e.g. React.js"
-                                                        />
-                                                        <select
-                                                            className="bg-white border-none text-[10px] font-black uppercase tracking-widest text-brand-yellow px-4 rounded-xl focus:ring-4 focus:ring-brand-yellow/10"
-                                                            value={skill.level}
-                                                            onChange={(e) => updateListEntry('skills', idx, 'level', e.target.value)}
-                                                        >
-                                                            <option>Beginner</option>
-                                                            <option>Intermediate</option>
-                                                            <option>Advanced</option>
-                                                            <option>Expert</option>
-                                                        </select>
-                                                        <button onClick={() => removeListEntry('skills', idx)} className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/entry:opacity-100"><X className="w-4 h-4" /></button>
+                                                    <div key={idx} className="flex items-center gap-4 bg-gray-50/80 p-4 rounded-2xl border border-gray-100 group/entry relative">
+                                                        <div className="absolute -top-2 -right-2 flex items-center gap-1 opacity-0 group-hover/entry:opacity-100 transition-opacity z-10">
+                                                            <button onClick={() => toggleEditNode('skills', idx)} className="p-1.5 bg-white shadow-lg rounded-lg text-gray-400 hover:text-brand-yellow transition-colors border border-gray-100">
+                                                                {editingNodes.skills[idx] ? <CheckCircle className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                                                            </button>
+                                                            <button onClick={() => removeListEntry('skills', idx)} className="p-1.5 bg-white shadow-lg rounded-lg text-gray-400 hover:text-red-500 transition-colors border border-gray-100"><Trash2 className="w-4 h-4" /></button>
+                                                        </div>
+
+                                                        {editingNodes.skills[idx] ? (
+                                                            <>
+                                                                <input
+                                                                    className="flex-1 bg-transparent border-none text-[13px] font-black uppercase tracking-wider text-gray-900 focus:ring-0 placeholder:text-gray-300"
+                                                                    value={skill.name}
+                                                                    onChange={(e) => updateListEntry('skills', idx, 'name', e.target.value)}
+                                                                    placeholder="e.g. React.js"
+                                                                />
+                                                                <select
+                                                                    className="bg-white border-none text-[10px] font-black uppercase tracking-widest text-brand-yellow px-4 rounded-xl focus:ring-4 focus:ring-brand-yellow/10"
+                                                                    value={skill.level}
+                                                                    onChange={(e) => updateListEntry('skills', idx, 'level', e.target.value)}
+                                                                >
+                                                                    <option>Beginner</option>
+                                                                    <option>Intermediate</option>
+                                                                    <option>Advanced</option>
+                                                                    <option>Expert</option>
+                                                                </select>
+                                                            </>
+                                                        ) : (
+                                                            <div className="flex items-center justify-between w-full">
+                                                                <span className="text-[12px] font-black text-gray-900 uppercase tracking-widest">{skill.name || 'Untitled Skill'}</span>
+                                                                <span className="bg-brand-yellow text-black px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-sm">{skill.level}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
-                                                {profileData.skills.length === 0 && <EmptyState text="No skill nodes mapped." />}
                                             </div>
                                         </SectionCard>
 
                                         <SectionCard
-                                            title="Linguistic Uplink"
+                                            title="Languages"
                                             icon={<MessageSquare />}
-                                            description="Communication protocols."
+                                            description="Languages you are proficient in."
                                             onAdd={() => addListEntry('languages', { language: '', fluency: 'Fluent' })}
                                         >
                                             <div className="space-y-4">
                                                 {profileData.languages.map((lang, idx) => (
-                                                    <div key={idx} className="flex items-center gap-4 bg-gray-50/80 p-4 rounded-2xl border border-gray-100 group/entry">
-                                                        <input
-                                                            className="flex-1 bg-transparent border-none text-[13px] font-black uppercase tracking-wider text-gray-900 focus:ring-0 placeholder:text-gray-300"
-                                                            value={lang.language}
-                                                            onChange={(e) => updateListEntry('languages', idx, 'language', e.target.value)}
-                                                            placeholder="e.g. English"
-                                                        />
-                                                        <select
-                                                            className="bg-white border-none text-[10px] font-black uppercase tracking-widest text-brand-yellow px-4 rounded-xl focus:ring-4 focus:ring-brand-yellow/10"
-                                                            value={lang.fluency}
-                                                            onChange={(e) => updateListEntry('languages', idx, 'fluency', e.target.value)}
-                                                        >
-                                                            <option>Basic</option>
-                                                            <option>Fluent</option>
-                                                            <option>Native</option>
-                                                        </select>
-                                                        <button onClick={() => removeListEntry('languages', idx)} className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/entry:opacity-100"><X className="w-4 h-4" /></button>
+                                                    <div key={idx} className="bg-gray-50/50 p-6 rounded-[1.5rem] border border-gray-100 relative group/entry hover:bg-white transition-all">
+                                                        <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover/entry:opacity-100 transition-opacity">
+                                                            <button onClick={() => toggleEditNode('languages', idx)} className="p-1.5 text-gray-400 hover:text-brand-yellow transition-colors">
+                                                                {editingNodes.languages[idx] ? <CheckCircle className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                                                            </button>
+                                                            <button onClick={() => removeListEntry('languages', idx)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                                        </div>
+
+                                                        {editingNodes.languages[idx] ? (
+                                                            <div className="space-y-4 pt-4">
+                                                                <ProfileInput label="Language" value={lang.language} onChange={(v) => updateListEntry('languages', idx, 'language', v)} placeholder="e.g. English" />
+                                                                <ProfileInput label="Fluency" value={lang.fluency} onChange={(v) => updateListEntry('languages', idx, 'fluency', v)} placeholder="e.g. Native" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[12px] font-black text-gray-900 uppercase tracking-widest">{lang.language || 'Language Unknown'}</span>
+                                                                <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">{lang.fluency || 'Unknown'}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
-                                                {profileData.languages.length === 0 && <EmptyState text="No linguistic nodes added." />}
                                             </div>
                                         </SectionCard>
                                     </div>
-                                </div>
-                            </motion.div>
+
+
+                                </div >
+                            </motion.div >
                         ) : (
                             <motion.div
                                 key="applications"
@@ -438,18 +695,18 @@ const UserProfile = () => {
                                 <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-black/5">
                                     <div className="flex items-center gap-4 mb-10">
                                         <Activity className="w-8 h-8 text-brand-yellow" />
-                                        <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase leading-none">Transmission Pipeline</h2>
+                                        <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase leading-none">Application Pipeline</h2>
                                     </div>
 
                                     {loadingApps ? (
                                         <div className="py-32 flex flex-col items-center gap-6">
                                             <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin shadow-2xl shadow-brand-yellow/20"></div>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-yellow animate-pulse">Decrypting Cluster...</span>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-yellow animate-pulse">Loading Applications...</span>
                                         </div>
                                     ) : applications.length === 0 ? (
                                         <div className="py-32 border-4 border-gray-50 border-dashed rounded-[3rem] flex flex-col items-center justify-center opacity-30 select-none bg-gray-50/50">
                                             <Zap className="w-16 h-16 text-gray-300 mb-6" />
-                                            <span className="text-[12px] font-black text-gray-400 uppercase tracking-[0.5em] ">No signals detected</span>
+                                            <span className="text-[12px] font-black text-gray-400 uppercase tracking-[0.5em] ">No applications found</span>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 gap-8">
@@ -466,9 +723,9 @@ const UserProfile = () => {
                                 </div>
                             </motion.div>
                         )}
-                    </AnimatePresence>
-                </div>
-            </div>
+                    </AnimatePresence >
+                </div >
+            </div >
 
             {/* Offer Conversation Modal */}
             <AnimatePresence>
@@ -489,31 +746,52 @@ const UserProfile = () => {
                     />
                 ))}
             </AnimatePresence>
+
+            {/* Change Password Modal */}
+            <AnimatePresence>
+                {isPasswordModalOpen && (
+                    <ChangePasswordModal
+                        isOpen={isPasswordModalOpen}
+                        onClose={() => {
+                            setIsPasswordModalOpen(false);
+                            setPasswordError('');
+                            setPasswordSuccess('');
+                            setPasswordForm({ current_password: '', password: '', password_confirmation: '' });
+                        }}
+                        onSubmit={handleChangePassword}
+                        form={passwordForm}
+                        setForm={setPasswordForm}
+                        loading={passwordLoading}
+                        error={passwordError}
+                        success={passwordSuccess}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };
 
 // UI Sub-components
-const SectionCard = ({ title, icon, description, children, onAdd }) => (
-    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-black/5 overflow-hidden">
-        <div className="px-10 py-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-            <div className="flex items-center gap-6">
-                <div className="w-14 h-14 bg-gray-900 rounded-2xl flex items-center justify-center text-brand-yellow shadow-2xl border border-gray-800">
+const SectionCard = ({ title, icon, description, onAdd, children }) => (
+    <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-xl shadow-black/5">
+        <div className="px-8 py-6 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-5">
+                <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-brand-yellow shadow-lg">
                     {React.cloneElement(icon, { size: 24 })}
                 </div>
                 <div>
-                    <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight leading-none mb-1">{title}</h3>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{description}</p>
+                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight leading-none mb-1">{title}</h3>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{description}</p>
                 </div>
             </div>
             <button
                 onClick={onAdd}
-                className="flex items-center gap-3 bg-white text-gray-900 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-wider hover:bg-gray-900 hover:text-brand-yellow transition-all shadow-md border border-gray-100 active:scale-95"
+                className="flex items-center gap-3 bg-white text-gray-900 px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-gray-900 hover:text-brand-yellow transition-all shadow-md border border-gray-100 active:scale-95"
             >
-                <Zap size={14} className="text-brand-yellow" /> Add Node
+                <Zap size={14} className="text-brand-yellow" /> Add Item
             </button>
         </div>
-        <div className="p-10">{children}</div>
+        <div className="p-8">{children}</div>
     </div>
 );
 
@@ -561,9 +839,9 @@ const ApplicationBlock = ({ app, toggleDialog, openDialogs }) => (
                     <div>
                         <div className="flex bg-gray-900 text-brand-yellow px-4 py-2 rounded-xl items-center gap-2 mb-3 w-fit shadow-xl shadow-black/10">
                             <Zap className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em]">Active Transmission Node</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em]">Active Application</span>
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight leading-none group-hover:text-brand-yellow transition-colors">{app.job_posting?.requisition?.title || 'Unknown Protocol'}</h3>
+                        <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight leading-none group-hover:text-brand-yellow transition-colors">{app.job_posting?.requisition?.title || 'Unknown Job Title'}</h3>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -578,16 +856,79 @@ const ApplicationBlock = ({ app, toggleDialog, openDialogs }) => (
                             )}
                         </button>
                     )}
-                    <div className="bg-brand-yellow text-black px-10 py-5 rounded-[1.5rem] text-[12px] font-black uppercase tracking-[0.25em] shadow-xl shadow-brand-yellow/10 border-2 border-white">
-                        {app.status.replace('_', ' ')}
+                    <div className="bg-brand-yellow text-black px-6 py-3 rounded-xl border-4 border-white shadow-xl flex flex-col items-center min-w-[140px]">
+                        <span className="text-[8px] font-black uppercase tracking-widest opacity-50 mb-1">Current Status</span>
+                        <span className="text-[12px] font-black uppercase tracking-widest">{app.status?.replace('_', ' ')}</span>
                     </div>
+                </div>
+            </div>
+
+            {/* Signal Section: Active Status Flow Dashboard */}
+            <div className="mb-8 bg-white rounded-2xl p-5 mt-4 shadow-sm border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-gray-200 via-brand-yellow to-gray-200"></div>
+                <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-6 flex items-center justify-between">
+                    <span className="flex items-center gap-2"><Activity className="w-3 h-3 text-brand-yellow" /> Application Progress Flow</span>
+                    {app.status === 'rejected' && <span className="text-red-500 bg-red-50 px-2 py-0.5 rounded text-[8px]">REJECTED</span>}
+                </h4>
+
+                <div className="flex w-full items-center justify-between relative px-1">
+                    {/* Background track line */}
+                    <div className="absolute left-[4%] right-[4%] top-[18px] h-[2px] bg-gray-100 z-0"></div>
+
+                    {(() => {
+                        const phases = [
+                            { key: 'submitted', label: 'Applied', icon: Activity },
+                            { key: 'written_test', label: 'Evaluation', icon: FileText },
+                            { key: 'interview_1', label: 'Interview 1', icon: Target },
+                            { key: 'interview_2', label: 'Interview 2', icon: Target },
+                            { key: 'offer', label: 'Offer Stage', icon: MessageSquare },
+                            { key: 'hired', label: 'Hired', icon: CheckCircle }
+                        ];
+
+                        const linearKeys = phases.map(p => p.key);
+                        let currentIndex = linearKeys.indexOf(app.status?.toLowerCase());
+                        if (currentIndex === -1 && app.status !== 'rejected') currentIndex = 0;
+
+                        return phases.map((phase, idx) => {
+                            let state = 'upcoming';
+                            if (app.status === 'rejected') {
+                                state = idx < currentIndex ? 'completed' : (idx === currentIndex ? 'rejected' : 'upcoming');
+                            } else {
+                                if (idx < currentIndex) state = 'completed';
+                                else if (idx === currentIndex) state = 'current';
+                            }
+
+                            const Icon = phase.icon;
+
+                            return (
+                                <div key={phase.key} className="flex flex-col items-center gap-2 relative z-10 w-12 group/phase">
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500 shadow-md border-2 ${state === 'completed' ? 'bg-black text-brand-yellow border-black scale-100'
+                                        : state === 'current' ? 'bg-brand-yellow text-black border-white scale-125 shadow-brand-yellow/30'
+                                            : state === 'rejected' ? 'bg-red-500 text-white border-white scale-110'
+                                                : 'bg-white text-gray-300 border-gray-100 scale-100'
+                                        }`}>
+                                        {state === 'completed' ? <CheckCircle className="w-3.5 h-3.5" /> :
+                                            state === 'rejected' ? <X className="w-3.5 h-3.5" /> :
+                                                <Icon className={`w-3.5 h-3.5 ${state === 'current' ? 'animate-pulse' : ''}`} />}
+                                    </div>
+                                    <span className={`text-[7px] font-black uppercase tracking-widest text-center transition-colors leading-tight ${state === 'current' ? 'text-gray-900'
+                                        : state === 'completed' ? 'text-gray-900'
+                                            : state === 'rejected' ? 'text-red-500'
+                                                : 'text-gray-300'
+                                        }`}>
+                                        {phase.label}
+                                    </span>
+                                </div>
+                            );
+                        });
+                    })()}
                 </div>
             </div>
 
             {/* History Logs */}
             <div className="bg-white rounded-[2rem] p-10 border border-gray-100 shadow-sm">
                 <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-300 mb-10 flex items-center gap-4">
-                    <History className="w-5 h-5 text-brand-yellow" /> Temporal Audit Trail
+                    <History className="w-5 h-5 text-brand-yellow" /> Application History
                 </h4>
                 <div className="space-y-12 border-l-4 border-brand-yellow/20 ml-4 pl-12">
                     {app.histories?.map((h, i) => (
@@ -595,18 +936,18 @@ const ApplicationBlock = ({ app, toggleDialog, openDialogs }) => (
                             <div className="absolute -left-[54px] top-1.5 w-6 h-6 bg-white border-4 border-brand-yellow rounded-xl shadow-xl group-hover/log:scale-125 group-hover/log:rotate-12 transition-all"></div>
                             <div className="flex items-center justify-between mb-3 opacity-40">
                                 <span className="text-[10px] font-black uppercase tracking-widest">{new Date(h.created_at).toLocaleString()}</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-lg">Vetted by: {h.user?.name || 'System Core'}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-lg">Reviewed by: {h.user?.name || 'System'}</span>
                             </div>
                             <div className="flex flex-col gap-2">
-                                <span className="text-[12px] font-black text-brand-yellow uppercase tracking-widest">{h.status?.replace('_', ' ')} Transition</span>
-                                <p className="text-[16px] font-bold text-gray-800 tracking-tight leading-relaxed italic">"{h.feedback || 'Access Protocol Synchronized.'}"</p>
+                                <span className="text-[12px] font-black text-brand-yellow uppercase tracking-widest">{h.status?.replace('_', ' ')} Update</span>
+                                <p className="text-[16px] font-bold text-gray-800 tracking-tight leading-relaxed italic">"{h.feedback || 'Application Status Updated.'}"</p>
                                 {h.document_path && (
                                     <a
                                         href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8003'}/storage/${h.document_path}`}
                                         target="_blank" rel="noopener noreferrer"
                                         className="mt-4 w-fit flex items-center gap-3 bg-gray-900 text-brand-yellow px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl hover:bg-black transition-all"
                                     >
-                                        <Download className="w-4 h-4" /> Download Offer Key
+                                        <Download className="w-4 h-4" /> Download Offer Letter
                                     </a>
                                 )}
                             </div>
@@ -617,6 +958,90 @@ const ApplicationBlock = ({ app, toggleDialog, openDialogs }) => (
         </div>
     </div>
 );
+
+const ChangePasswordModal = ({ isOpen, onClose, onSubmit, form, setForm, loading, error, success }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100"
+            >
+                <div className="bg-gray-900 p-8 flex items-center justify-between relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-16"></div>
+                    <div className="flex flex-col relative z-10">
+                        <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-1">Security Settings</span>
+                        <h2 className="text-xl font-black text-white uppercase tracking-tight">Change Password</h2>
+                    </div>
+                    <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 relative z-10 group active:scale-95">
+                        <X className="w-5 h-5 text-gray-400 group-hover:text-white" />
+                    </button>
+                </div>
+
+                <form onSubmit={onSubmit} className="p-8 space-y-6">
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 text-[11px] font-black uppercase tracking-widest flex items-center gap-3">
+                                <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+                            </motion.div>
+                        )}
+                        {success && (
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 text-[11px] font-black uppercase tracking-widest flex items-center gap-3 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-full bg-emerald-500/10 skew-x-[30deg] translate-x-8"></div>
+                                <Zap className="w-4 h-4 shrink-0" /> {success}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-2 relative">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">Current Password</label>
+                            <input
+                                type="password" required value={form.current_password}
+                                onChange={(e) => setForm({ ...form, current_password: e.target.value })}
+                                placeholder="Enter current password..."
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-bold text-gray-900 focus:ring-2 focus:ring-brand-yellow/20 focus:border-brand-yellow transition-all"
+                            />
+                            <Lock className="absolute right-6 top-[38px] w-4 h-4 text-gray-300 pointer-events-none" />
+                        </div>
+                        <div className="flex flex-col gap-2 relative">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">New Password</label>
+                            <input
+                                type="password" required minLength="8" value={form.password}
+                                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                placeholder="Min 8 characters..."
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-bold text-gray-900 focus:ring-2 focus:ring-brand-yellow/20 focus:border-brand-yellow transition-all"
+                            />
+                            <Key className="absolute right-6 top-[38px] w-4 h-4 text-gray-300 pointer-events-none" />
+                        </div>
+                        <div className="flex flex-col gap-2 relative">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">Confirm New Password</label>
+                            <input
+                                type="password" required minLength="8" value={form.password_confirmation}
+                                onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })}
+                                placeholder="Verify new password..."
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[13px] font-bold text-gray-900 focus:ring-2 focus:ring-brand-yellow/20 focus:border-brand-yellow transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit" disabled={loading}
+                        className="w-full py-4 bg-gray-900 text-brand-yellow rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-black transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 group border border-gray-800 hover:border-brand-yellow/30"
+                    >
+                        {loading ? <div className="w-4 h-4 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" /> : <><ShieldCheck className="w-4 h-4 group-hover:scale-110 transition-transform" /> Update Password</>}
+                    </button>
+                </form>
+            </motion.div>
+        </div>
+    );
+};
 
 export default UserProfile;
 
@@ -650,7 +1075,7 @@ const OfferConversationModal = ({ isOpen, onClose, appId, user, applications, di
                             <MessageSquare className="w-6 h-6 text-brand-yellow" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-1">Encrypted Line</span>
+                            <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-1">Secure Messaging</span>
                             <span className="text-lg font-black text-white uppercase tracking-tight">Offer Conversation</span>
                         </div>
                     </div>
@@ -667,12 +1092,12 @@ const OfferConversationModal = ({ isOpen, onClose, appId, user, applications, di
                     {dialogLoading[appId] ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-6">
                             <div className="w-10 h-10 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(255,242,0,0.2)]" />
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Syncing Protocols...</span>
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Loading Messages...</span>
                         </div>
                     ) : (dialogMessages[appId] || []).length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 opacity-20">
                             <MessageSquare className="w-16 h-16 text-gray-400 mb-6" />
-                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] text-center">Awaiting initial transmission.</p>
+                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] text-center">No messages yet. Start the conversation.</p>
                         </div>
                     ) : (dialogMessages[appId] || []).map((msg, i) => {
                         const isMe = msg.user_id === user?.id;
@@ -680,7 +1105,7 @@ const OfferConversationModal = ({ isOpen, onClose, appId, user, applications, di
                             <div key={i} className={`flex flex-col gap-3 ${isMe ? 'items-end' : 'items-start'}`}>
                                 <div className="flex items-center gap-3 px-2">
                                     <span className={`text-[10px] font-black uppercase tracking-widest ${isMe ? 'text-brand-yellow' : 'text-gray-400'}`}>
-                                        {isMe ? 'User Origin' : (msg.user?.name || 'TA Node')}
+                                        {isMe ? 'You' : (msg.user?.name || 'Status / HR')}
                                     </span>
                                     <span className="w-1.5 h-1.5 rounded-full bg-gray-200"></span>
                                     <span className="text-[9px] font-bold text-gray-300 uppercase">
@@ -715,7 +1140,7 @@ const OfferConversationModal = ({ isOpen, onClose, appId, user, applications, di
                                 <div className="w-4 h-4 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    Transmit
+                                    Send Message
                                     <Send className="w-4 h-4" />
                                 </>
                             )}

@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Applications
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'apply']);
     Route::post('/applications/{application}/offer-comment', [ApplicationController::class, 'submitOfferComment']);
+    Route::post('/applications/{application}/offer-notify', [ApplicationController::class, 'offerNotify']);
     Route::get('/applications/{application}/messages', [ApplicationMessageController::class, 'index']);
     Route::post('/applications/{application}/messages', [ApplicationMessageController::class, 'store']);
     Route::get('/applications', [ApplicationController::class, 'index']);
