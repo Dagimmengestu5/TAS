@@ -90,7 +90,8 @@ class ApprovalDashboardController extends Controller
 
         $requisition->update([
             'status' => 'rejected',
-            'budget_status' => 'rejected'
+            'budget_status' => 'rejected',
+            'reject_comment' => $request->comment
         ]);
 
         // Notify Hiring Manager about rejection
@@ -178,7 +179,8 @@ class ApprovalDashboardController extends Controller
         }
 
         $requisition->update([
-            'status' => 'rejected'
+            'status' => 'rejected',
+            'reject_comment' => $request->comment
         ]);
 
         // Notify Hiring Manager about rejection

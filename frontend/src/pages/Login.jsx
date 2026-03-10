@@ -168,7 +168,7 @@ const Login = () => {
                     <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center shadow-lg shadow-black/10">
                         <Shield className="w-6 h-6 text-[#fff000]" />
                     </div>
-                    <span className="text-xl font-bold text-black tracking-tight">Droga Hub</span>
+                    <span className="text-xl font-bold text-black tracking-tight">Droga Group Hub</span>
                 </motion.div>
 
                 <div className="relative z-10 max-w-lg">
@@ -219,7 +219,7 @@ const Login = () => {
                         <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm">
                             <Shield className="w-5 h-5 text-[#fff200]" />
                         </div>
-                        <span className="text-lg font-bold text-black tracking-tight">Droga Hub</span>
+                        <span className="text-lg font-bold text-black tracking-tight">Droga Group Hub</span>
                     </div>
                 </div>
 
@@ -284,7 +284,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gray-900 text-white py-3.5 mt-2 rounded-xl font-bold text-sm hover:bg-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-gray-900/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full bg-gray-900 text-brand-yellow py-3.5 mt-2 rounded-xl font-bold text-sm hover:bg-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-gray-900/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <div className="w-5 h-5 border-2 border-white/20 border-t-brand-yellow rounded-full animate-spin" />

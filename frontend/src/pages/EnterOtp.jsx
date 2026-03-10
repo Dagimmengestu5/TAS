@@ -145,7 +145,7 @@ const EnterOtp = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-black text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/5 disabled:opacity-70"
+                        className="w-full bg-black text-brand-yellow py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/5 disabled:opacity-70"
                     >
                         {loading ? (
                             <>

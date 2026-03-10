@@ -61,6 +61,7 @@ class ApplicationSubmitted extends Notification
             'application_id' => $this->application->id,
             'title' => 'Application Received',
             'message' => 'We have received your application for ' . $this->application->jobPosting->requisition->title,
+            'type' => 'application',
             'status' => $this->application->status
         ];
     }

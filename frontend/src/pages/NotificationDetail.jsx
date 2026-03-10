@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, ArrowLeft, Clock, ShieldCheck, Mail, AlertTriangle, MessageSquare, Send, X, User } from 'lucide-react';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
@@ -124,7 +124,9 @@ const NotificationDetail = () => {
         );
     }
 
-    const { title, message, type } = notification.data;
+    const { title, message, type } = notification.data || {};
+    const effectiveTitle = title || notification.data?.job_title || 'System Alert';
+    const effectiveMessage = message || 'Transmission details not available.';
     const applicationId = notification?.data?.application_id;
     const candidateName = notification?.data?.candidate_name;
     const hasDialog = !!applicationId;
@@ -169,12 +171,12 @@ const NotificationDetail = () => {
 
                         {/* Title */}
                         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                            {title || 'System Alert'}
+                            {effectiveTitle}
                         </h1>
 
                         {/* Message body */}
                         <p className="text-lg text-gray-600 leading-relaxed font-medium mb-10">
-                            {message}
+                            {effectiveMessage}
                         </p>
 
                         {hasDialog && (

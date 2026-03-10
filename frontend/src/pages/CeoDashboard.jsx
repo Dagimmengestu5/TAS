@@ -9,6 +9,8 @@ const CeoDashboard = () => {
     const [requisitions, setRequisitions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedReq, setSelectedReq] = useState(null);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectComment, setRejectComment] = useState('');
 
     const fetchRequisitions = async () => {
         setLoading(true);
@@ -30,18 +32,18 @@ const CeoDashboard = () => {
 
     const getStorageUrl = (path) => {
         if (!path) return null;
-        if (path.startsWith('http')) return path;
-        const baseUrl = import.meta.env.VITE_API_URL
-            ? import.meta.env.VITE_API_URL.replace('/api', '')
-            : `http://${window.location.hostname}:8003`;
+        const baseUrl = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace('/api', '');
         return `${baseUrl}/storage/${path}`;
     };
 
-    const handleAction = async (id, action) => {
+    const handleAction = async (id, action, comment = null) => {
         try {
-            await api.patch(`/approvals/ceo/requisitions/${id}/${action}`);
+            const payload = comment ? { comment } : {};
+            await api.patch(`/approvals/ceo/requisitions/${id}/${action}`, payload);
             alert(`Requisition ${action}d successfully`);
             setSelectedReq(null);
+            setShowRejectModal(false);
+            setRejectComment('');
             fetchRequisitions();
         } catch (error) {
             alert(`Failed to ${action} requisition`);
@@ -51,6 +53,60 @@ const CeoDashboard = () => {
 
     return (
         <div className="bg-gray-50 min-h-screen w-full selection:bg-brand-yellow/30 px-6 py-6 lg:px-10 ">
+            {/* Rejection Comment Modal */}
+            <AnimatePresence>
+                {showRejectModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md"
+                        onClick={() => setShowRejectModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl border border-gray-100"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
+                                    <AlertCircle className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-xl font-black text-gray-900 uppercase">Decline Reason</h3>
+                            </div>
+
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-1">
+                                Please provide a reason for declining this mandate. This feedback will be shared with the lead officer.
+                            </p>
+
+                            <textarea
+                                value={rejectComment}
+                                onChange={(e) => setRejectComment(e.target.value)}
+                                placeholder="Enter decline details..."
+                                className="w-full h-32 bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all resize-none mb-6"
+                            />
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowRejectModal(false)}
+                                    className="flex-1 px-6 py-4 rounded-xl border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleAction(selectedReq.id, 'reject', rejectComment)}
+                                    disabled={!rejectComment.trim()}
+                                    className="flex-[1.5] px-6 py-4 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Confirm Decline
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="mb-12 flex justify-between items-end">
                 <div className="flex-1">
@@ -107,17 +163,6 @@ const CeoDashboard = () => {
                                         </div>
                                     </div>
 
-                                    {/* Info Grid */}
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
-                                        <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/50 flex items-center gap-2.5">
-                                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                                            <span className="text-[10px] font-bold text-gray-600 truncate uppercase tracking-tight">{req.location || 'HQ Office'}</span>
-                                        </div>
-                                        <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/50 flex items-center gap-2.5">
-                                            <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                            <span className="text-[10px] font-bold text-gray-600 truncate uppercase tracking-tight">{req.employment_type || 'Contract'}</span>
-                                        </div>
-                                    </div>
 
                                     <div className="flex items-center gap-2 mb-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
@@ -205,7 +250,7 @@ const CeoDashboard = () => {
                                             <XCircle className="w-6 h-6 text-white/40 group-hover:text-white" />
                                         </button>
                                     </div>
-                                    <h2 className="text-4xl font-black text-white uppercase tracking-tight leading-[0.9]">{selectedReq.title}</h2>
+                                    <h2 className="text-4xl font-black text-brand-yellow uppercase tracking-tight leading-[0.9]">{selectedReq.title}</h2>
                                 </div>
                             </div>
 
@@ -215,8 +260,6 @@ const CeoDashboard = () => {
                                     {[
                                         { label: 'Organization', value: selectedReq.company?.name, icon: Building2 },
                                         { label: 'Unit Group', value: selectedReq.department?.name, icon: Briefcase },
-                                        { label: 'Geo Location', value: selectedReq.location, icon: MapPin },
-                                        { label: 'Engagement', value: selectedReq.employment_type, icon: Briefcase },
                                         { label: 'Strategic Unit', value: selectedReq.category, icon: Tag },
                                     ].map((item, idx) => (
                                         <div key={idx} className="bg-gray-50/80 border border-gray-100 p-5 rounded-[2rem] flex flex-col gap-3">
@@ -239,9 +282,22 @@ const CeoDashboard = () => {
                                     </div>
                                     <div className="bg-gray-50/50 border border-gray-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
                                         <FileText className="absolute -bottom-4 -right-4 w-32 h-32 text-gray-100/50 group-hover:scale-110 transition-transform duration-700" />
-                                        <p className="relative z-10 text-[15px] text-gray-700 font-medium leading-[1.8] whitespace-pre-wrap">
-                                            {selectedReq.description}
-                                        </p>
+                                        <div className="relative z-10">
+                                            <p className="text-[15px] text-gray-700 font-medium leading-[1.8] whitespace-pre-wrap mb-8">
+                                                {selectedReq.description}
+                                            </p>
+
+                                            {selectedReq.jd_path && (
+                                                <a
+                                                    href={getStorageUrl(selectedReq.jd_path)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-3 px-6 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 hover:bg-blue-400 transition-all shadow-sm"
+                                                >
+                                                    <Download className="w-4 h-4" /> View Job Description (PDF)
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -277,7 +333,7 @@ const CeoDashboard = () => {
                                     <CheckCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                                 </button>
                                 <button
-                                    onClick={() => handleAction(selectedReq.id, 'reject')}
+                                    onClick={() => setShowRejectModal(true)}
                                     className="flex-1 bg-white border-2 border-gray-100 text-gray-400 h-20 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-3 active:scale-95"
                                 >
                                     Decline <XCircle className="w-5 h-5" />

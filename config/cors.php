@@ -7,17 +7,15 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'public/api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
         'http://localhost:5173',
         'http://localhost:5174',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        'http://10.10.40.50:5173',
-        'http://10.10.40.50:5174',
+        'https://bot2.netwebup.com',
+        'https://tas.netwebup.com',
     ],
 
     'allowed_origins_patterns' => [],
@@ -28,5 +26,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];

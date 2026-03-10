@@ -28,6 +28,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
     const [interviewDate, setInterviewDate] = useState('');
     const [interviewTime, setInterviewTime] = useState('');
     const [interviewLocation, setInterviewLocation] = useState('');
+    const [interviewAddressLink, setInterviewAddressLink] = useState('');
     const [openMenuId, setOpenMenuId] = useState(null);
     const [showProfile, setShowProfile] = useState(true);
     const [activeDetailView, setActiveDetailView] = useState('operational'); // 'operational' or 'personal'
@@ -181,8 +182,9 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                 key={app.id}
                 layoutId={`card-${app.id}`}
                 onClick={() => { setOpenMenuId(null); setSelectedApp(app); }}
-                className="bg-white p-4 rounded-[1.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-brand-yellow/40 transition-all duration-500 cursor-pointer group relative overflow-visible border-l-4 border-l-transparent hover:border-l-brand-yellow"
+                className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:bg-gray-900 hover:border-gray-800 transition-all duration-500 cursor-pointer group relative overflow-hidden active:scale-[0.98]"
             >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-yellow/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-brand-yellow/10 transition-colors"></div>
                 {/* Top Row: three-dot menu + job title badge */}
                 <div className="flex justify-between items-start mb-3">
                     <div className="relative" onClick={e => e.stopPropagation()}>
@@ -225,36 +227,36 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                     </div>
 
                     {/* Job title badge */}
-                    <div className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 max-w-[180px]">
+                    <div className="inline-flex items-center gap-1.5 bg-gray-50 group-hover:bg-gray-800 border border-gray-100 group-hover:border-gray-700 rounded-lg px-2.5 py-1.5 max-w-[180px] transition-colors">
                         <Briefcase className="w-3 h-3 text-brand-yellow flex-shrink-0" />
-                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider truncate">{app.job_posting?.title || app.job_posting?.requisition?.title || 'General'}</span>
+                        <span className="text-[8px] font-black text-gray-400 group-hover:text-gray-300 uppercase tracking-widest truncate">{app.job_posting?.title || app.job_posting?.requisition?.title || 'General'}</span>
                     </div>
                 </div>
 
                 {/* Candidate Name */}
-                <h3 className="text-sm font-bold text-gray-900 tracking-tight mb-1 leading-tight group-hover:text-brand-yellow transition-colors truncate">{cand.name || 'Anonymous'}</h3>
+                <h3 className="text-sm font-black text-gray-900 group-hover:text-brand-yellow tracking-tight mb-1 leading-tight transition-colors truncate uppercase">{cand.name || 'Anonymous Node'}</h3>
 
                 {cand.professional_background && (
-                    <div className="flex items-center gap-1.5 mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow flex-shrink-0"></div>
-                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-wider truncate">{cand.professional_background}</span>
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow flex-shrink-0 shadow-[0_0_8px_#FFF200]"></div>
+                        <span className="text-[9px] font-bold text-gray-500 group-hover:text-gray-400 uppercase tracking-wider truncate">{cand.professional_background}</span>
                     </div>
                 )}
 
                 {/* Audit Log */}
-                <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 group-hover:bg-brand-yellow/5 group-hover:border-brand-yellow/10 transition-colors">
-                    <div className="flex items-center gap-1.5 mb-0.5">
+                <div className="p-3 bg-gray-50 group-hover:bg-gray-800/50 rounded-2xl border border-gray-100 group-hover:border-gray-700 transition-all">
+                    <div className="flex items-center gap-2 mb-1">
                         <ShieldCheck className="w-3 h-3 text-brand-yellow" />
-                        <span className="text-[9px] font-bold text-gray-400">Vetted by: <span className="text-gray-900">{adminName}</span></span>
+                        <span className="text-[9px] font-bold text-gray-400 group-hover:text-gray-500 uppercase tracking-widest">Vetted by: <span className="text-gray-900 group-hover:text-brand-yellow transition-colors">{adminName}</span></span>
                     </div>
-                    <p className="text-[10px] font-semibold text-gray-500 line-clamp-1">"{latestLog.feedback || 'Status updated.'}"</p>
+                    <p className="text-[10px] font-bold text-gray-500 group-hover:text-gray-300 line-clamp-1 italic">"{latestLog.feedback || 'Synchronized state updated.'}"</p>
                 </div>
 
                 {/* Skills */}
                 {cand.skills && (
-                    <div className="mt-2 flex flex-wrap gap-1">
+                    <div className="mt-3 flex flex-wrap gap-1.5">
                         {(typeof cand.skills === 'string' ? JSON.parse(cand.skills || '[]') : cand.skills || []).slice(0, 3).map((skill, i) => (
-                            <span key={i} className="text-[7px] font-black uppercase tracking-widest bg-gray-100 text-gray-400 px-2 py-0.5 rounded-md group-hover:bg-brand-yellow/10 group-hover:text-brand-yellow transition-colors">
+                            <span key={i} className="text-[7px] font-black uppercase tracking-widest bg-gray-100 group-hover:bg-gray-800 text-gray-400 group-hover:text-brand-yellow px-2 py-1 rounded-md transition-all border border-transparent group-hover:border-brand-yellow/20">
                                 {typeof skill === 'object' ? skill.name : skill}
                             </span>
                         ))}
@@ -262,10 +264,10 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                 )}
 
                 {/* Bottom Bar */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-50 mt-3">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-50 group-hover:border-gray-800 mt-4 transition-colors">
                     <div>
-                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Applied</span>
-                        <span className="block text-[10px] font-bold text-gray-600 mt-0.5">{new Date(app.created_at).toLocaleDateString()}</span>
+                        <span className="text-[8px] font-black text-gray-300 group-hover:text-gray-600 uppercase tracking-widest">Entry Date</span>
+                        <span className="block text-[10px] font-black text-gray-500 group-hover:text-gray-400 mt-0.5 tracking-tighter">{new Date(app.created_at).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                         {/* Internal Notify Button - Restricted to Offer/Hired stage */}
@@ -304,8 +306,8 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                             </button>
                         )}
 
-                        <div className="w-7 h-7 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-brand-yellow group-hover:scale-110 transition-all duration-500 shadow-sm">
-                            <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-black transition-all" />
+                        <div className="w-8 h-8 rounded-xl bg-gray-50 group-hover:bg-brand-yellow flex items-center justify-center transition-all duration-500 shadow-sm group-hover:shadow-[0_0_15px_rgba(255,242,0,0.4)] group-hover:scale-110 active:scale-90">
+                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black transition-all" />
                         </div>
                     </div>
                 </div>
@@ -420,6 +422,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                     type: newStatus,
                     scheduled_at: scheduledAt,
                     location: interviewLocation,
+                    address_link: interviewAddressLink,
                     notes: statusFeedback
                 });
             } else {
@@ -458,6 +461,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
             setInterviewDate('');
             setInterviewTime('');
             setInterviewLocation('');
+            setInterviewAddressLink('');
         } catch (_) {
             alert('Status update failed.');
         } finally {
@@ -731,7 +735,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                         <div className="w-2 h-2 bg-brand-yellow rounded-full animate-pulse shadow-[0_0_10px_#FFF200]"></div>
                                         <h2 className="text-[12px] font-bold uppercase tracking-wider text-brand-yellow ">{status.replace('_', ' ')}</h2>
                                     </div>
-                                    <span className="text-[11px] font-bold text-white/30 uppercase tracking-wider relative z-10 px-2 py-1 bg-white/5 rounded-md">
+                                    <span className="text-[11px] font-bold text-brand-yellow/50 uppercase tracking-wider relative z-10 px-2 py-1 bg-white/5 rounded-md">
                                         {filteredApps.filter(a => (a.status?.toLowerCase() || '') === status).length}
                                     </span>
                                 </div>
@@ -887,7 +891,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                                 <p className="text-[14px] font-bold text-gray-600 leading-relaxed italic pr-6">"{h.feedback || 'Access protocol synchronized.'}"</p>
                                                                                 {h.document_path && (
                                                                                     <a
-                                                                                        href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8003'}/storage/${h.document_path}`}
+                                                                                        href={`${(import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace('/api', '')}/storage/${h.document_path}`}
                                                                                         target="_blank" rel="noopener noreferrer"
                                                                                         className="mt-4 w-fit flex items-center gap-4 bg-black text-brand-yellow px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-brand-yellow hover:text-black transition-all transform hover:-translate-y-1"
                                                                                     >
@@ -963,7 +967,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                             </div>
                                                                         </div>
                                                                         <a
-                                                                            href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8003'}/storage/${selectedApp.candidate.cv_path}`}
+                                                                            href={`${(import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace('/api', '')}/storage/${selectedApp.candidate.cv_path}`}
                                                                             target="_blank" rel="noopener noreferrer"
                                                                             className="p-3 bg-black text-brand-yellow rounded-xl hover:bg-white hover:text-black transition-all shadow-lg active:scale-95"
                                                                             title="View Candidate CV"
@@ -985,6 +989,23 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                             <span className="text-[10px] font-black opacity-40 uppercase">Sync Schedule</span>
                                                                             <span className="text-[12px] font-black">{new Date(selectedApp.interviews[0].scheduled_at).toLocaleDateString()} @ {new Date(selectedApp.interviews[0].scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                                         </div>
+                                                                        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                                                                            <span className="text-[10px] font-black opacity-40 uppercase">Venue</span>
+                                                                            <span className="text-[12px] font-black">{selectedApp.interviews[0].location || 'Classified'}</span>
+                                                                        </div>
+                                                                        {selectedApp.interviews[0].address_link && (
+                                                                            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                                                                                <span className="text-[10px] font-black opacity-40 uppercase">Maps Link</span>
+                                                                                <a
+                                                                                    href={selectedApp.interviews[0].address_link}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="bg-brand-yellow text-black px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+                                                                                >
+                                                                                    Open Maps <ExternalLink className="inline w-3 h-3 ml-1" />
+                                                                                </a>
+                                                                            </div>
+                                                                        )}
                                                                         <div className="flex items-center justify-between pt-1">
                                                                             <span className="text-[10px] font-black opacity-40 uppercase">Nav URI</span>
                                                                             {selectedApp.interviews[0].location?.startsWith('http') ? (
@@ -1033,14 +1054,43 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                         {targetStatus ? (
                                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                                                 {targetStatus.startsWith('interview') && (
-                                                                    <div className="grid grid-cols-2 gap-4 bg-white/5 p-5 rounded-2xl border border-white/5">
+                                                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-white/5 p-5 rounded-2xl border border-white/5">
                                                                         <div className="flex flex-col gap-3">
                                                                             <label className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.3em]">Sync Date</label>
                                                                             <input
                                                                                 type="date"
                                                                                 value={interviewDate}
                                                                                 onChange={(e) => setInterviewDate(e.target.value)}
-                                                                                className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-[13px] font-bold text-white focus:outline-none focus:border-brand-yellow"
+                                                                                className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-[13px] font-bold text-brand-yellow focus:outline-none focus:border-brand-yellow"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex flex-col gap-3">
+                                                                            <label className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.3em]">Sync Time</label>
+                                                                            <input
+                                                                                type="time"
+                                                                                value={interviewTime}
+                                                                                onChange={(e) => setInterviewTime(e.target.value)}
+                                                                                className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-[13px] font-bold text-brand-yellow focus:outline-none focus:border-brand-yellow"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex flex-col gap-3">
+                                                                            <label className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.3em]">Venue/Location</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={interviewLocation}
+                                                                                onChange={(e) => setInterviewLocation(e.target.value)}
+                                                                                placeholder="HQ Office / Zoom"
+                                                                                className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-[13px] font-bold text-brand-yellow focus:outline-none focus:border-brand-yellow"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex flex-col gap-3">
+                                                                            <label className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.3em]">Maps/Address Link</label>
+                                                                            <input
+                                                                                type="url"
+                                                                                value={interviewAddressLink}
+                                                                                onChange={(e) => setInterviewAddressLink(e.target.value)}
+                                                                                placeholder="https://maps..."
+                                                                                className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-[13px] font-bold text-brand-yellow focus:outline-none focus:border-brand-yellow"
                                                                             />
                                                                         </div>
                                                                     </div>
@@ -1057,7 +1107,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                         />
                                                                         <label
                                                                             htmlFor="offer-upload"
-                                                                            className="flex items-center justify-center gap-3 cursor-pointer bg-white/5 p-4 rounded-xl text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all border border-white/10"
+                                                                            className="flex items-center justify-center gap-3 cursor-pointer bg-white/5 p-4 rounded-xl text-[9px] font-black uppercase tracking-widest text-brand-yellow hover:bg-white/10 transition-all border border-white/10"
                                                                         >
                                                                             {offerDocument ? (
                                                                                 <>
@@ -1079,11 +1129,11 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                         value={statusFeedback}
                                                                         onChange={(e) => setStatusFeedback(e.target.value)}
                                                                         placeholder={`Provide protocol justification for ${targetStatus.replace('_', ' ')}...`}
-                                                                        className="w-full bg-black border-2 border-white/10 rounded-[1.5rem] p-5 text-[14px] font-bold text-white focus:outline-none focus:border-brand-yellow transition-all h-32 resize-none shadow-inner"
+                                                                        className="w-full bg-black border-2 border-white/10 rounded-[1.5rem] p-5 text-[14px] font-bold text-brand-yellow focus:outline-none focus:border-brand-yellow transition-all h-32 resize-none shadow-inner"
                                                                     />
                                                                 </div>
                                                                 <div className="flex gap-4">
-                                                                    <button onClick={() => setTargetStatus(null)} className="flex-1 py-3 border-2 border-white/10 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-white/5 transition-all">
+                                                                    <button onClick={() => setTargetStatus(null)} className="flex-1 py-3 border-2 border-white/10 text-brand-yellow font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-white/5 transition-all">
                                                                         Abort
                                                                     </button>
                                                                     <button
@@ -1133,7 +1183,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'
                                                                                         : act.primary
                                                                                             ? 'bg-brand-yellow border-brand-yellow text-black hover:bg-white hover:border-white'
-                                                                                            : 'bg-white/10 border-white/20 text-white hover:bg-brand-yellow hover:text-black hover:border-brand-yellow'
+                                                                                            : 'bg-white/10 border-white/20 text-brand-yellow hover:bg-brand-yellow hover:text-black hover:border-brand-yellow'
                                                                                 } active:scale-[0.98] group`}
                                                                         >
                                                                             <span className="flex items-center gap-3">
@@ -1157,12 +1207,12 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                 {/* Candidate Identity & CV */}
                                                 <div className="bg-black p-6 rounded-[1.5rem] shadow-xl border-4 border-brand-yellow/10 mb-6 relative overflow-hidden group">
                                                     <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12"><User size={48} className="text-brand-yellow" /></div>
-                                                    <h2 className="text-[14px] font-black text-white uppercase tracking-tight mb-1">{selectedApp.candidate?.name}</h2>
+                                                    <h2 className="text-[14px] font-black text-brand-yellow uppercase tracking-tight mb-1">{selectedApp.candidate?.name}</h2>
                                                     <p className="text-[9px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-4">Tactical Asset Profile</p>
 
                                                     {selectedApp.candidate?.cv_path && (
                                                         <a
-                                                            href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8003'}/storage/${selectedApp.candidate.cv_path}`}
+                                                            href={`${(import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace('/api', '')}/storage/${selectedApp.candidate.cv_path}`}
                                                             target="_blank" rel="noopener noreferrer"
                                                             className="flex items-center justify-between w-full bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-brand-yellow hover:text-black transition-all group/btn"
                                                         >
@@ -1317,7 +1367,7 @@ const ApplicationPipeline = ({ statusFilterOverride, filterOverride, layout = 'b
                                                                     </div>
                                                                     {(node.file_path || (node.id && (node.id.startsWith('http') || node.id.includes('.')))) && (
                                                                         <a
-                                                                            href={node.file_path ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}/storage/${node.file_path}` : node.id}
+                                                                            href={node.file_path ? `${(import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace('/api', '')}/storage/${node.file_path}` : node.id}
                                                                             target="_blank" rel="noopener noreferrer"
                                                                             className="p-2.5 bg-white rounded-xl text-black border border-gray-100 hover:bg-black hover:text-brand-yellow transition-all shadow-xl"
                                                                         >
@@ -1395,7 +1445,7 @@ const TaOfferConversationModal = ({ isOpen, onClose, appId, currentUser, applica
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.3em] mb-1">Talent Acquisition Terminal</span>
-                            <span className="text-lg font-black text-white uppercase tracking-tight">Offer Conversation</span>
+                            <span className="text-lg font-black text-brand-yellow uppercase tracking-tight">Offer Conversation</span>
                         </div>
                     </div>
                     <button
@@ -1481,12 +1531,12 @@ export default ApplicationPipeline;
 // UI Components for the Modal
 const CompactStat = ({ icon, label, value }) => (
     <div className="flex-1 flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 group hover:border-brand-yellow/30 transition-all duration-500 hover:bg-white/10 shadow-inner">
-        <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center text-white/30 group-hover:text-brand-yellow group-hover:bg-black transition-all shadow-xl shrink-0 border border-white/5 group-hover:border-brand-yellow/20">
+        <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center text-brand-yellow/30 group-hover:text-brand-yellow group-hover:bg-black transition-all shadow-xl shrink-0 border border-white/5 group-hover:border-brand-yellow/20">
             {React.cloneElement(icon, { size: 18 })}
         </div>
         <div className="min-w-0">
-            <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] block mb-1 group-hover:text-brand-yellow/60 transition-colors truncate">{label}</span>
-            <span className="text-[13px] font-black text-white uppercase tracking-tight group-hover:text-brand-yellow transition-colors block truncate">{value}</span>
+            <span className="text-[8px] font-black text-brand-yellow/50 uppercase tracking-[0.2em] block mb-1 group-hover:text-brand-yellow/60 transition-colors truncate">{label}</span>
+            <span className="text-[13px] font-black text-brand-yellow uppercase tracking-tight group-hover:text-brand-yellow transition-colors block truncate">{value}</span>
         </div>
     </div>
 );

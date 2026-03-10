@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Clock, Briefcase, ChevronLeft, Send, CheckCircle, FileText, Globe, Zap, ArrowRight, ShieldCheck, X, GraduationCap, Award, Home, Target } from 'lucide-react';
+import { MapPin, Clock, Briefcase, ChevronLeft, Send, CheckCircle, FileText, Globe, Zap, ArrowRight, ShieldCheck, X, GraduationCap, Award, Home, Target, Calendar } from 'lucide-react';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -120,12 +120,21 @@ const JobDetail = () => {
         <div className="min-h-screen bg-white flex items-center justify-center p-10">
             <div className="text-center">
                 <h1 className="text-2xl font-bold mb-4">Job Not Found</h1>
-                <button onClick={() => navigate('/')} className="px-8 py-3 bg-black text-white rounded-xl font-bold text-xs uppercase transition-all">Back to Opportunities</button>
+                <button onClick={() => navigate('/')} className="px-8 py-3 bg-black text-brand-yellow rounded-xl font-bold text-xs uppercase transition-all">Back to Opportunities</button>
             </div>
         </div>
     );
 
     const hasPrivilegedAccess = ['admin', 'ta_team', 'manager', 'executive'].includes(user?.role?.name);
+
+    const getRemainingDays = (deadline) => {
+        if (!deadline) return null;
+        const diff = new Date(deadline) - new Date();
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        return days;
+    };
+
+    const remainingDays = getRemainingDays(job.deadline);
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-brand-yellow/30 pb-40">
@@ -158,8 +167,8 @@ const JobDetail = () => {
                         <div className="absolute top-0 right-0 w-48 h-48 bg-brand-yellow/5 rounded-bl-[8rem] -mr-16 -mt-16"></div>
 
                         <div className="mb-12 relative z-10">
-                            <div className="inline-flex items-center gap-2 bg-brand-yellow/10 text-brand-yellow px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider mb-8 border border-brand-yellow/20">
-                                <Zap className="w-3.5 h-3.5" /> Node Modality: {job.employment_type || job.requisition.employment_type || 'Full-Time'}
+                            <div className="inline-flex items-center gap-2.5 bg-gray-900 text-brand-yellow px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] mb-8 border border-gray-800 shadow-lg">
+                                <Zap className="w-3.5 h-3.5 fill-brand-yellow/20" /> Node Modality: {job.employment_type || job.requisition.employment_type || 'Full-Time'}
                             </div>
                             <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-8 leading-[1.1] uppercase">
                                 {job.title || job.requisition.title}
@@ -239,17 +248,41 @@ const JobDetail = () => {
                                 </div>
                             </section>
 
-                            <section>
-                                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6 flex items-center gap-4 ">
-                                    <div className="w-8 h-px bg-gray-900"></div> Strategic Impact
-                                </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {(job.core_requirements ? job.core_requirements.split('|') : ['Strategic Execution', 'Node Optimization', 'Cross-Unit Synergy', 'Core Evolution']).map((req, i) => (
-                                        <div key={i} className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 text-[9px] font-bold uppercase tracking-wider group hover:border-brand-yellow/30 transition-all">
-                                            <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-brand-yellow text-[10px] font-bold shadow-sm group-hover:bg-brand-yellow group-hover:text-black transition-all">0{i + 1}</div>
-                                            {req || 'Strategic Pillar'}
+                            {job.core_requirements && job.core_requirements.split('|').some(req => req.trim() !== '') && (
+                                <section>
+                                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6 flex items-center gap-4 ">
+                                        <div className="w-8 h-px bg-gray-900"></div> Strategic Impact
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {job.core_requirements.split('|').filter(req => req.trim() !== '').map((req, i) => (
+                                            <div key={i} className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 text-[9px] font-bold uppercase tracking-wider group hover:border-brand-yellow/30 transition-all">
+                                                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-brand-yellow text-[10px] font-bold shadow-sm group-hover:bg-brand-yellow group-hover:text-black transition-all">0{i + 1}</div>
+                                                {req}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            <section className="pt-8 border-t border-gray-50 flex flex-wrap gap-8">
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Temporal Origin</span>
+                                    <div className="flex items-center gap-2.5 bg-gray-50 px-5 py-3 rounded-xl border border-gray-100 font-bold text-[10px] uppercase tracking-wider text-gray-800">
+                                        <Clock className="w-3.5 h-3.5 text-brand-yellow" /> Posted on {new Date(job.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Final Cutoff</span>
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="flex items-center gap-2.5 bg-gray-50 px-5 py-3 rounded-xl border border-gray-100 font-bold text-[10px] uppercase tracking-wider text-gray-800">
+                                            <Calendar className="w-3.5 h-3.5 text-brand-yellow" /> Deadline: {job.deadline ? new Date(job.deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Continuous Enrollment'}
                                         </div>
-                                    ))}
+                                        {remainingDays !== null && (
+                                            <div className={`text-[8px] font-bold uppercase tracking-widest px-4 ${remainingDays < 0 ? 'text-red-500' : remainingDays <= 3 ? 'text-orange-500 animate-pulse' : 'text-gray-900'}`}>
+                                                {remainingDays < 0 ? 'Enrollment Closed' : remainingDays === 0 ? 'Closing Today' : `${remainingDays} Day${remainingDays > 1 ? 's' : ''} Remaining`}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </section>
                         </div>
@@ -274,7 +307,7 @@ const JobDetail = () => {
                                     <div className="w-16 h-16 bg-brand-yellow rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-brand-yellow/20 transition-transform hover:scale-105">
                                         <CheckCircle className="w-8 h-8 text-gray-900" />
                                     </div>
-                                    <h5 className="text-xl font-bold text-white mb-3 tracking-tight">Application Submitted!</h5>
+                                    <h5 className="text-xl font-bold text-brand-yellow mb-3 tracking-tight">Application Submitted!</h5>
                                     <p className="text-xs text-gray-400 font-medium leading-relaxed mb-6">
                                         Your professional coordinates have been received. Check your <span className="text-brand-yellow cursor-pointer hover:underline" onClick={() => navigate('/profile')}>Profile Activity Signals</span> to track your progress in real-time.
                                     </p>

@@ -103,12 +103,12 @@ const TAReport = () => {
                 <div className="space-y-2">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-gray-400 ml-4 ">Filter by Position</label>
                     <div className="relative group">
-                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-hover:text-brand-yellow transition-colors" />
+                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-hover:text-gray-900 transition-colors" />
                         <select
                             name="job_title"
                             value={filters.job_title}
                             onChange={handleFilterChange}
-                            className="w-full bg-white border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-[11px] font-bold uppercase tracking-tight focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow transition-all appearance-none "
+                            className="w-full bg-white border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-[11px] font-bold uppercase tracking-tight focus:outline-none focus:ring-4 focus:ring-gray-100 focus:border-gray-200 transition-all appearance-none "
                         >
                             <option value="all">Global (All Positions)</option>
                             {jobTitles.map(title => (
@@ -121,13 +121,13 @@ const TAReport = () => {
                 <div className="space-y-2">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-gray-400 ml-4 ">Submission Start</label>
                     <div className="relative group">
-                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-hover:text-brand-yellow transition-colors" />
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-hover:text-gray-900 transition-colors" />
                         <input
                             type="date"
                             name="start_date"
                             value={filters.start_date}
                             onChange={handleFilterChange}
-                            className="w-full bg-white border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-[11px] font-bold uppercase tracking-tight focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow transition-all "
+                            className="w-full bg-white border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-[11px] font-bold uppercase tracking-tight focus:outline-none focus:ring-4 focus:ring-gray-100 focus:border-gray-200 transition-all "
                         />
                     </div>
                 </div>
@@ -135,13 +135,13 @@ const TAReport = () => {
                 <div className="space-y-2">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-gray-400 ml-4 ">Submission End</label>
                     <div className="relative group">
-                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-hover:text-brand-yellow transition-colors" />
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-hover:text-gray-900 transition-colors" />
                         <input
                             type="date"
                             name="end_date"
                             value={filters.end_date}
                             onChange={handleFilterChange}
-                            className="w-full bg-white border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-[11px] font-bold uppercase tracking-tight focus:outline-none focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow transition-all "
+                            className="w-full bg-white border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-[11px] font-bold uppercase tracking-tight focus:outline-none focus:ring-4 focus:ring-gray-100 focus:border-gray-200 transition-all "
                         />
                     </div>
                 </div>
@@ -164,7 +164,7 @@ const TAReport = () => {
                             .pipeline-horizontal-scroll::-webkit-scrollbar { height: 10px; }
                             .pipeline-horizontal-scroll::-webkit-scrollbar-track { background: #F9FAFB; margin: 0 20px; }
                             .pipeline-horizontal-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 6px; border: 2px solid #F9FAFB; }
-                            .pipeline-horizontal-scroll::-webkit-scrollbar-thumb:hover { background: #FFF200; }
+                            .pipeline-horizontal-scroll::-webkit-scrollbar-thumb:hover { background: #111827; }
                         `}
                     </style>
                     <table className="w-full text-left border-collapse min-w-[1200px]">
@@ -184,7 +184,7 @@ const TAReport = () => {
                                 <tr>
                                     <td colSpan="7" className="px-8 py-32 text-center text-[10px] font-bold text-gray-300 uppercase tracking-wider ">
                                         <div className="flex flex-col items-center gap-4">
-                                            <div className="w-10 h-10 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin"></div>
+                                            <div className="w-10 h-10 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
                                             Accessing Data Node...
                                         </div>
                                     </td>
@@ -206,7 +206,7 @@ const TAReport = () => {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
                                             <span className="text-[13px] font-bold text-gray-900 uppercase  tracking-tight mb-1">{item.job_title}</span>
-                                            <span className={`text-[8px] font-bold uppercase tracking-wider  px-2 py-0.5 rounded w-fit ${['approved', 'posted', 'closed'].includes(item.status) ? 'bg-brand-yellow/10 text-brand-yellow' : 'bg-gray-100 text-gray-500'}`}>
+                                            <span className={`text-[8px] font-bold uppercase tracking-wider  px-2 py-0.5 rounded w-fit ${['approved', 'posted', 'closed'].includes(item.status) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
                                                 {item.status?.replace('_', ' ')}
                                             </span>
                                         </div>
@@ -237,7 +237,7 @@ const TAReport = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-2 group/date">
-                                            <Zap className="w-3.5 h-3.5 text-brand-yellow opacity-20 group-hover/date:opacity-100 transition-opacity" />
+                                            <Zap className="w-3.5 h-3.5 text-gray-400 opacity-20 group-hover/date:opacity-100 transition-opacity" />
                                             <span className="text-[11px] font-bold text-gray-900 ">{formatDate(item.posted_date)}</span>
                                         </div>
                                     </td>
@@ -280,7 +280,7 @@ const TAReport = () => {
                         </div>
                         <button
                             onClick={exportToExcel}
-                            className="bg-brand-yellow text-black px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider  hover:scale-105 transition-all shadow-xl flex items-center gap-2"
+                            className="bg-brand-yellow text-black px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:scale-105 transition-all shadow-xl flex items-center gap-2"
                         >
                             <Download className="w-3.5 h-3.5" /> Export to System Log (.xlsx)
                         </button>

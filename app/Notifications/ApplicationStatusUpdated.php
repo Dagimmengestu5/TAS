@@ -90,6 +90,7 @@ class ApplicationStatusUpdated extends Notification
             'application_id' => $this->application->id,
             'title' => 'Application Status Updated',
             'message' => 'The status of your application for ' . ($this->application->jobPosting?->requisition?->title ?? 'Position') . ' has been updated to ' . str_replace('_', ' ', $this->application->status),
+            'type' => 'status_update',
             'status' => $this->application->status,
             'feedback' => $this->feedback
         ];

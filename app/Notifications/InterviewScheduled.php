@@ -79,15 +79,12 @@ class InterviewScheduled extends Notification
                         ->salutation('Best regards, The Droga Group Hub Talent Acquisition Team');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(object $notifiable): array
     {
         $application = $this->interview->application;
         return [
+            'type' => 'interview',
+            'title' => 'Interview Scheduled',
             'interview_id' => $this->interview->id,
             'application_id' => $application->id,
             'job_title' => $application->jobPosting?->requisition?->title ?? 'Position',

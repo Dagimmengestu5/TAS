@@ -16,6 +16,22 @@ use App\Http\Controllers\Api\OrgController;
 use App\Http\Controllers\Api\ApplicationMessageController;
 use Illuminate\Support\Facades\Route;
 
+// Connectivity tests
+Route::get('/', function () {
+    return response()->json(['message' => 'TAS API Connectivity: Success', 'status' => 'online']);
+});
+
+Route::get('/ping', function () {
+    return response()->json(['message' => 'API Sub-route Ping: Success']);
+});
+
+// OAuth Routes (EXPLICIT)
+Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->defaults('provider', 'google');
+Route::get('/auth/github/redirect', [SocialiteController::class, 'redirect'])->defaults('provider', 'github');
+Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->defaults('provider', 'google');
+Route::get('/auth/github/callback', [SocialiteController::class, 'callback'])->defaults('provider', 'github');
+
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/email', [AuthController::class, 'forgotPassword']);
@@ -37,75 +53,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/jobs/{job}/reject', [JobController::class, 'reject']);
     Route::apiResource('jobs', JobController::class)->except(['index', 'show']);
     
-    // Requisitions (Creation and Basic Fetching)
+    // Requisitions
     Route::get('/requisitions', [RequisitionController::class, 'index']);
     Route::post('/requisitions', [RequisitionController::class, 'store']);
     Route::post('/requisitions/{requisition}/update', [RequisitionController::class, 'update']);
     Route::delete('/requisitions/{requisition}', [RequisitionController::class, 'destroy']);
     
-    // --- NEW DEDICATED APPROVAL DASHBOARD ENDPOINTS ---
+    // Approvals
     Route::get('/approvals/hr/requisitions', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'getHrRequisitions']);
-    Route::patch('/approvals/hr/requisitions/{id}/approve', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'approveHrRequisition']);
-    Route::patch('/approvals/hr/requisitions/{id}/reject', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'rejectHrRequisition']);
-
     Route::get('/approvals/ceo/requisitions', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'getCeoRequisitions']);
-    Route::patch('/approvals/ceo/requisitions/{id}/approve', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'approveCeoRequisition']);
-    Route::patch('/approvals/ceo/requisitions/{id}/reject', [\App\Http\Controllers\Api\ApprovalDashboardController::class, 'rejectCeoRequisition']);
     
     // Applications
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'apply']);
-    Route::post('/applications/{application}/offer-comment', [ApplicationController::class, 'submitOfferComment']);
-    Route::post('/applications/{application}/offer-notify', [ApplicationController::class, 'offerNotify']);
-    Route::get('/applications/{application}/messages', [ApplicationMessageController::class, 'index']);
-    Route::post('/applications/{application}/messages', [ApplicationMessageController::class, 'store']);
     Route::get('/applications', [ApplicationController::class, 'index']);
     Route::get('/applications/{application}', [ApplicationController::class, 'show']);
     Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus']);
 
-    // Interviews
-    Route::apiResource('interviews', InterviewController::class);
-
-    // Offers
-    Route::apiResource('offers', OfferController::class);
-
-    // Onboarding
-    Route::apiResource('onboarding', OnboardingController::class);
-
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/{id}', [NotificationController::class, 'show']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 
     // User Management
-    Route::get('/roles', [UserController::class, 'roles']);
     Route::apiResource('users', UserController::class);
-
-    // Profile Management
-    Route::get('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
-    Route::post('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
 
     // Organization Structure
     Route::get('/companies', [OrgController::class, 'companies']);
-    Route::post('/companies', [OrgController::class, 'storeCompany']);
-    Route::put('/companies/{company}', [OrgController::class, 'updateCompany']);
-    Route::delete('/companies/{company}', [OrgController::class, 'destroyCompany']);
-
     Route::get('/departments', [OrgController::class, 'departments']);
-    Route::get('/companies/{companyId}/departments', [OrgController::class, 'departments']);
-    Route::post('/departments', [OrgController::class, 'storeDepartment']);
-    Route::put('/departments/{department}', [OrgController::class, 'updateDepartment']);
-    Route::delete('/departments/{department}', [OrgController::class, 'destroyDepartment']);
 
     // Reports
     Route::get('/reports/metrics', [ReportController::class, 'getRecruitmentMetrics']);
     Route::get('/reports/ta-report', [ReportController::class, 'getTAReport']);
 });
 
-// Public Job Access (Placed after protected specific routes to avoid shadowing)
+// Public Job Access
 Route::get('/jobs', [JobController::class, 'index']);
 Route::get('/jobs/{job}', [JobController::class, 'show']);
-
-// OAuth Routes
-Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect']);
-Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']);

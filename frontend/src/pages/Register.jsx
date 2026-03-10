@@ -101,7 +101,6 @@ const Register = () => {
         password: '',
         password_confirmation: '',
         phone: '',
-        professional_background: '',
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -210,9 +209,9 @@ const Register = () => {
                         style={{ x: textX, y: textY }}
                         transition={{ delay: 0.5, duration: 0.8 }}
                     >
-                        <h1 className="text-6xl font-bold text-black tracking-tight leading-[1.05] mb-6">
+                        <h1 className="text-6xl font-black text-black tracking-tighter leading-[0.95] mb-6 uppercase">
                             Join the <br />
-                            <span className="opacity-70">elite network.</span>
+                            <span className="opacity-70">Droga network.</span>
                         </h1>
                     </motion.div>
                     <motion.p
@@ -261,9 +260,12 @@ const Register = () => {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="w-full max-w-lg"
                 >
-                    <div className="mb-8 lg:mb-10 text-center lg:text-left">
-                        <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight leading-tight mb-1.5">Create Account</h2>
-                        <p className="text-gray-500 text-xs">Please fill in your details to get started.</p>
+                    <div className="mb-12 text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 bg-brand-yellow/10 text-brand-yellow px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest mb-6 border border-brand-yellow/20">
+                            <ShieldCheck className="w-3.5 h-3.5" /> Secure Onboarding
+                        </div>
+                        <h2 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-3 uppercase">Identity Setup</h2>
+                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Connect with our synchronized ecosystem.</p>
                     </div>
 
                     {generalError && (
@@ -281,7 +283,7 @@ const Register = () => {
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="text" required
-                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.name ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-200 shadow-sm font-bold ${errors.name ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-100 focus:ring-brand-yellow/10 focus:border-brand-yellow'}`}
                                         placeholder="John Doe"
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -297,7 +299,7 @@ const Register = () => {
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="email" required
-                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.email ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-200 shadow-sm font-bold ${errors.email ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-100 focus:ring-brand-yellow/10 focus:border-brand-yellow'}`}
                                         placeholder="john@example.com"
                                         value={formData.email}
                                         onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -315,7 +317,7 @@ const Register = () => {
                                         type="tel"
                                         required
                                         inputMode="numeric"
-                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.phone ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-black/5 focus:border-black'}`}
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-200 shadow-sm font-bold ${errors.phone ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-100 focus:ring-brand-yellow/10 focus:border-brand-yellow'}`}
                                         placeholder="09..."
                                         value={formData.phone}
                                         onChange={e => {
@@ -327,29 +329,6 @@ const Register = () => {
                                 {errors.phone ? <p className="text-xs text-red-500 ml-1">{errors.phone}</p> : <p className="text-[10px] text-gray-400 ml-1">Numbers only, e.g. 0912345678</p>}
                             </div>
 
-                            {/* Discipline */}
-                            <div className="space-y-2">
-                                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider ml-1">Discipline</label>
-                                <div className="relative group">
-                                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-black transition-colors z-10" />
-                                    <select
-                                        className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-8 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all appearance-none shadow-sm relative z-0"
-                                        value={formData.professional_background}
-                                        onChange={e => setFormData({ ...formData, professional_background: e.target.value })}
-                                    >
-                                        <option value="" disabled className="text-gray-300">Select Category</option>
-                                        <option value="IT">IT & Tech</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="Health">Healthcare</option>
-                                        <option value="Eng">Engineering</option>
-                                        <option value="Marketing">Marketing</option>
-                                        <option value="Sales">Sales</option>
-                                        <option value="HR">Human Resources</option>
-                                        <option value="Operations">Operations</option>
-                                        <option value="Legal">Legal</option>
-                                    </select>
-                                </div>
-                            </div>
 
                             {/* Password */}
                             <div className="space-y-2">
@@ -358,7 +337,7 @@ const Register = () => {
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="password" required
-                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.password ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-200 shadow-sm font-bold ${errors.password ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-100 focus:ring-brand-yellow/10 focus:border-brand-yellow'}`}
                                         placeholder="••••••••"
                                         value={formData.password}
                                         onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -374,7 +353,7 @@ const Register = () => {
                                     <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                                     <input
                                         type="password" required
-                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-300 shadow-sm ${errors.password_confirmation ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-200 focus:ring-gray-900/5 focus:border-gray-900'}`}
+                                        className={`w-full bg-white border rounded-xl pl-12 pr-4 py-4 text-sm focus:bg-white focus:outline-none focus:ring-4 transition-all placeholder:text-gray-200 shadow-sm font-bold ${errors.password_confirmation ? 'border-red-300 focus:ring-red-100 focus:border-red-400' : 'border-gray-100 focus:ring-brand-yellow/10 focus:border-brand-yellow'}`}
                                         placeholder="••••••••"
                                         value={formData.password_confirmation}
                                         onChange={e => setFormData({ ...formData, password_confirmation: e.target.value })}
@@ -387,7 +366,7 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gray-900 text-white py-3.5 mt-4 rounded-xl font-bold text-sm hover:bg-black transition-all flex items-center justify-center gap-2 group shadow-lg shadow-gray-900/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full bg-gray-900 text-brand-yellow py-4.5 mt-8 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-3 group shadow-2xl shadow-gray-900/30 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed border border-gray-800"
                         >
                             {loading ? (
                                 <div className="w-5 h-5 border-2 border-white/20 border-t-brand-yellow rounded-full animate-spin" />

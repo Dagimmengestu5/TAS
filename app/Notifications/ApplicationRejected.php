@@ -28,7 +28,7 @@ class ApplicationRejected extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -42,10 +42,10 @@ class ApplicationRejected extends Notification
         return (new MailMessage)
             ->subject('Update on Your Application - ' . $jobTitle)
             ->greeting('Hello ' . $candidateName . ',')
-            ->line('Thank you for the time and effort you invested in applying for the ' . $jobTitle . ' position at Droga Group.')
+            ->line('Thank you for the time and effort you invested in applying for the ' . $jobTitle . ' position at Droga Group Hub.')
             ->line('Following a thorough review of your professional profile, we have decided not to move forward with your application at this time.')
             ->line('However, we were impressed with your background and have added your profile to our Talent Pool for future opportunities that align with your skills.')
-            ->line('We wish you the very best in your professional journey and thank you again for your interest in Droga Group.')
+            ->line('We wish you the very best in your professional journey and thank you again for your interest in Droga Group Hub.')
             ->action('View Other Opportunities', config('app.frontend_url'))
             ->salutation('Best regards, The Droga Group Hub Talent Acquisition Team');
     }
@@ -58,7 +58,11 @@ class ApplicationRejected extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'application_id' => $this->application->id,
+            'title' => 'Application Status Update',
+            'message' => 'We have decided not to move forward with your application for ' . $this->application->jobPosting->requisition->title . ' at this time.',
+            'type' => 'rejection',
+            'status' => 'rejected'
         ];
     }
 }

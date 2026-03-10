@@ -60,14 +60,14 @@ const TADashboard = () => {
                     .dashboard-scroll::-webkit-scrollbar { height: 10px; }
                     .dashboard-scroll::-webkit-scrollbar-track { background: #F9FAFB; margin: 0 20px; }
                     .dashboard-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 6px; border: 2px solid #F9FAFB; }
-                    .dashboard-scroll::-webkit-scrollbar-thumb:hover { background: #FFF200; }
+                    .dashboard-scroll::-webkit-scrollbar-thumb:hover { background: #111827; }
                 `}
             </style>
 
             {/* Stats Header - Horizontal Scroll */}
             <div className="flex gap-4 mb-8 overflow-x-auto pb-4 dashboard-scroll">
                 {[
-                    { label: 'Active Jobs', val: stats.total_postings, icon: Briefcase, color: 'text-brand-yellow' },
+                    { label: 'Active Jobs', val: stats.total_postings, icon: Briefcase, color: 'text-gray-900' },
                     { label: 'Approved Requests', val: stats.pending_requisitions, icon: ShieldCheck, color: 'text-green-500' },
                     { label: 'Total Applications', val: stats.active_applications, icon: Activity, color: 'text-blue-500' },
                     { label: 'Employees Hired', val: stats.hired_count, icon: Target, color: 'text-purple-500' }
@@ -141,10 +141,10 @@ const TADashboard = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {jobPostings.map(job => (
-                                    <div key={job.id} className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 hover:border-brand-yellow/30 transition-all group">
+                                    <div key={job.id} className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 hover:border-gray-900/30 transition-all group">
                                         <div className="flex justify-between items-start mb-6">
                                             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                                                <Briefcase className="w-5 h-5 text-brand-yellow" />
+                                                <Briefcase className="w-5 h-5 text-gray-900" />
                                             </div>
                                             <span className={`px-2 py-1 rounded text-[8px] font-bold uppercase tracking-wider border  ${job.status === 'posted' ? 'text-brand-yellow bg-gray-900 border-gray-800 shadow-lg' :
                                                 job.status === 'created' ? 'text-gray-400 bg-gray-50 border-gray-100' :
@@ -153,7 +153,7 @@ const TADashboard = () => {
                                                 {job.status}
                                             </span>
                                         </div>
-                                        <h3 className="text-sm font-bold uppercase tracking-tight mb-2 group-hover:text-brand-yellow transition-colors ">{job.title || job.requisition?.title}</h3>
+                                        <h3 className="text-sm font-bold uppercase tracking-tight mb-2 group-hover:text-gray-600 transition-colors ">{job.title || job.requisition?.title}</h3>
                                         <div className="flex flex-col gap-1 text-[8px] font-bold text-gray-400 uppercase tracking-wider  mb-6">
                                             <span>Job ID: {String(job.id).padStart(4, '0')}</span>
                                             <span>Date: {new Date(job.created_at).toLocaleDateString()}</span>

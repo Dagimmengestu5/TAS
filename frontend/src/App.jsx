@@ -1,10 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import JobBoard from './pages/JobBoard';
 import JobDetail from './pages/JobDetail';
 import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
 import ManagerPortal from './pages/ManagerPortal';
 import HrDashboard from './pages/HrDashboard';
 import CeoDashboard from './pages/CeoDashboard';
@@ -30,7 +28,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role?.name)) {
     return <Navigate to="/" replace />;

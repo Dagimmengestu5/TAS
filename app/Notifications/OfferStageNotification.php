@@ -49,6 +49,7 @@ class OfferStageNotification extends Notification
     {
         return [
             'type'           => 'offer_stage_notification',
+            'title'          => "Update: {$this->jobTitle}",
             'message'        => $this->message,
             'candidate_name' => $this->candidateName,
             'job_title'      => $this->jobTitle,

@@ -75,7 +75,7 @@ const Sidebar = ({ isOpen, toggle, isMobileOpen, closeMobile }) => {
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="font-bold text-[13px] tracking-tight uppercase text-gray-900 leading-none">Droga Group Hub</span>
-                                        <span className="text-[8px] font-bold text-brand-yellow uppercase tracking-wider mt-1.5">Ecosystem OS</span>
+                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-1.5">Ecosystem OS</span>
                                     </div>
                                 </motion.div>
                             )}

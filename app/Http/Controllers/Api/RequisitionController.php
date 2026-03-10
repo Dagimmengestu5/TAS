@@ -224,7 +224,10 @@ class RequisitionController extends Controller
 
         if (($user->role_id == 6 && $requisition->status === 'pending_hr') ||
             ($user->role_id == 5 && $requisition->status === 'pending_ceo')) {
-            $requisition->update(['status' => 'rejected']);
+            $requisition->update([
+                'status' => 'rejected',
+                'reject_comment' => $request->comment
+            ]);
 
             // Notify Hiring Manager about rejection
             try {

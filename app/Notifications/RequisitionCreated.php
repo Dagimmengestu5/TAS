@@ -54,9 +54,10 @@ class RequisitionCreated extends Notification
     {
         return [
             'requisition_id' => $this->requisition->id,
-            'title' => $this->requisition->title,
+            'title' => 'New Requisition Submitted',
+            'type' => 'requisition',
             'status' => 'pending_hr',
-            'message' => 'New requisition submitted and awaiting approval.'
+            'message' => 'A new requisition for ' . $this->requisition->title . ' has been submitted and is awaiting approval.'
         ];
     }
 }

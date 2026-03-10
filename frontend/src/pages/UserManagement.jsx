@@ -180,23 +180,23 @@ const UserManagement = () => {
                     </h1>
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
-                            <ShieldCheck className="w-3.5 h-3.5 text-brand-yellow" />
+                            <ShieldCheck className="w-3.5 h-3.5 text-gray-900" />
                             <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 ">Administration</span>
                         </div>
                         <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-brand-yellow ">{users.length} Active Users</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-900 ">{users.length} Active Users</span>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <div className="relative group">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-brand-yellow transition-colors" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-gray-900 transition-colors" />
                         <input
                             type="text"
                             placeholder="Search users..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-gray-50 border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 text-[10px] font-bold uppercase tracking-wider text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all w-full md:w-56"
+                            className="bg-gray-50 border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 text-[10px] font-bold uppercase tracking-wider text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-200 transition-all w-full md:w-56"
                         />
                     </div>
                     <button
@@ -215,11 +215,11 @@ const UserManagement = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="mb-8 p-4 bg-gray-900 border-l-4 border-brand-yellow rounded-xl shadow-xl flex items-center gap-4 overflow-hidden relative"
+                        className="mb-8 p-4 bg-gray-900 border-l-4 border-white rounded-xl shadow-xl flex items-center gap-4 overflow-hidden relative"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-16"></div>
-                        <div className="w-8 h-8 rounded-lg bg-brand-yellow/10 flex items-center justify-center">
-                            <Zap className="w-4 h-4 text-brand-yellow" />
+                        <div className="absolute top-0 right-0 w-32 h-full bg-white/5 skew-x-[30deg] translate-x-16"></div>
+                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                            <Zap className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-[11px] font-bold text-brand-yellow uppercase tracking-wider ">{success}</span>
                     </motion.div>
@@ -272,12 +272,12 @@ const UserManagement = () => {
                                     <tr key={user.id} className="group hover:bg-gray-50/30 transition-all duration-300">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-brand-yellow font-bold text-sm shadow-md border border-gray-800 transition-transform group-hover:scale-105 relative overflow-hidden">
-                                                    <div className="absolute top-0 left-0 w-full h-[1px] bg-brand-yellow group-hover:animate-shimmer"></div>
+                                                <div className="w-10 h-10 bg-gray-900 text-brand-yellow rounded-xl flex items-center justify-center font-bold text-sm shadow-md border border-gray-800 transition-transform group-hover:scale-105 relative overflow-hidden">
+                                                    <div className="absolute top-0 left-0 w-full h-[1px] bg-white group-hover:animate-shimmer"></div>
                                                     {user.name.charAt(0)}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[12px] font-bold text-gray-900 uppercase tracking-tight  leading-tight mb-1 group-hover:text-brand-yellow transition-colors">{user.name}</span>
+                                                    <span className="text-[12px] font-bold text-gray-900 uppercase tracking-tight  leading-tight mb-1 group-hover:text-gray-600 transition-colors">{user.name}</span>
                                                     <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 ">
                                                         <Mail className="w-2.5 h-2.5" /> {user.email}
                                                     </span>
@@ -290,7 +290,7 @@ const UserManagement = () => {
                                             ) : (
                                                 <div className="flex flex-col">
                                                     <span className="text-[9px] font-bold text-gray-900 uppercase  mb-0.5">{user.company?.name || 'GENERIC'}</span>
-                                                    <span className="text-[7.5px] font-bold text-brand-yellow uppercase tracking-wider ">{user.department?.name || 'UNASSIGNED'}</span>
+                                                    <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wider ">{user.department?.name || 'UNASSIGNED'}</span>
                                                 </div>
                                             )}
                                         </td>
@@ -351,7 +351,7 @@ const UserManagement = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="h-[1px] w-24 bg-gray-100"></div>
-                    <span className="text-[9px] font-bold text-brand-yellow uppercase tracking-wider  animate-pulse">Connected</span>
+                    <span className="text-[9px] font-bold text-gray-900 uppercase tracking-wider  animate-pulse">Connected</span>
                 </div>
             </div>
 
@@ -375,7 +375,7 @@ const UserManagement = () => {
                         >
                             {/* Modal Header */}
                             <div className="bg-gray-950 p-6 flex items-center justify-between relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-16"></div>
+                                <div className="absolute top-0 right-0 w-32 h-full bg-white/5 skew-x-[30deg] translate-x-16"></div>
                                 <div className="flex flex-col gap-1 relative z-10">
                                     <h2 className="text-lg font-bold text-brand-yellow uppercase tracking-tight  leading-none">
                                         {editingUser ? 'Edit User' : 'Add User'}
@@ -385,7 +385,7 @@ const UserManagement = () => {
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="p-2.5 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-brand-yellow rounded-xl transition-all active:scale-95 border border-white/5 relative z-10"
+                                    className="p-2.5 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-xl transition-all active:scale-95 border border-white/5 relative z-10"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -395,7 +395,7 @@ const UserManagement = () => {
                             <form onSubmit={handleSubmit} className="p-8 space-y-6">
                                 <div className="space-y-5">
                                     <div className="group">
-                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Full Name</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">Full Name</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -403,13 +403,13 @@ const UserManagement = () => {
                                                 placeholder="Full name..."
                                                 value={form.name}
                                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-200 transition-all"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="group">
-                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Email Address</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">Email Address</label>
                                         <div className="relative">
                                             <input
                                                 type="email"
@@ -417,13 +417,13 @@ const UserManagement = () => {
                                                 placeholder="Email address..."
                                                 value={form.email}
                                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-200 transition-all"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="group">
-                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Password {editingUser && '(Keep empty to maintain current)'}</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">Password {editingUser && '(Keep empty to maintain current)'}</label>
                                         <div className="relative">
                                             <input
                                                 type="password"
@@ -431,20 +431,20 @@ const UserManagement = () => {
                                                 placeholder="Password..."
                                                 value={form.password}
                                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3.5 text-[12px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3.5 text-[12px] font-bold text-gray-900 uppercase  placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-200 transition-all"
                                             />
-                                            <Lock className="absolute right-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-200 group-focus-within:text-brand-yellow transition-colors" />
+                                            <Lock className="absolute right-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-200 group-focus-within:text-gray-900 transition-colors" />
                                         </div>
                                     </div>
 
                                     <div className="group">
-                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Role</label>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">Role</label>
                                         <div className="relative">
                                             <select
                                                 required
                                                 value={form.role_id}
                                                 onChange={(e) => setForm({ ...form, role_id: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  appearance-none focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all cursor-pointer"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-3 text-[11px] font-bold text-gray-900 uppercase  appearance-none focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-200 transition-all cursor-pointer"
                                             >
                                                 {roles.map(role => (
                                                     <option key={role.id} value={role.id}>{role.name}</option>
@@ -456,23 +456,23 @@ const UserManagement = () => {
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="group">
-                                            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Company</label>
+                                            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">Company</label>
                                             <select
                                                 value={form.company_id}
                                                 onChange={(e) => setForm({ ...form, company_id: e.target.value, department_id: '' })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold text-gray-900 uppercase  focus:ring-2 focus:ring-brand-yellow/10 transition-all cursor-pointer"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold text-gray-900 uppercase  focus:ring-2 focus:ring-gray-100 transition-all cursor-pointer"
                                             >
                                                 <option value="">N/A</option>
                                                 {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </div>
                                         <div className="group">
-                                            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">Department</label>
+                                            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider  mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">Department</label>
                                             <select
                                                 value={form.department_id}
                                                 disabled={!form.company_id}
                                                 onChange={(e) => setForm({ ...form, department_id: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold text-gray-900 uppercase  focus:ring-2 focus:ring-brand-yellow/10 transition-all cursor-pointer disabled:opacity-50"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold text-gray-900 uppercase  focus:ring-2 focus:ring-gray-100 transition-all cursor-pointer disabled:opacity-50"
                                             >
                                                 <option value="">N/A</option>
                                                 {departments
@@ -519,17 +519,17 @@ const UserManagement = () => {
                             className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-gray-100"
                         >
                             <div className="bg-gray-950 p-6 flex flex-col relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-full bg-brand-yellow/5 skew-x-[30deg] translate-x-16"></div>
+                                <div className="absolute top-0 right-0 w-32 h-full bg-white/5 skew-x-[30deg] translate-x-16"></div>
                                 <div className="flex items-center justify-between relative z-10 mb-4">
                                     <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-brand-yellow font-bold text-sm shadow-md border border-gray-800">
                                         <Lock className="w-4 h-4" />
                                     </div>
-                                    <button onClick={() => setIsPasswordResetOpen(false)} className="p-2 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-brand-yellow rounded-xl transition-all active:scale-95 border border-white/5">
+                                    <button onClick={() => setIsPasswordResetOpen(false)} className="p-2 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-xl transition-all active:scale-95 border border-white/5">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
                                 <div className="relative z-10">
-                                    <h2 className="text-lg font-bold text-white uppercase tracking-tight leading-none mb-1">Reset Password</h2>
+                                    <h2 className="text-lg font-bold text-brand-yellow uppercase tracking-tight leading-none mb-1">Reset Password</h2>
                                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{resettingUser.email}</span>
                                 </div>
                             </div>
@@ -551,15 +551,15 @@ const UserManagement = () => {
                                 </AnimatePresence>
 
                                 <div className="group">
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block ml-1 group-focus-within:text-brand-yellow transition-colors">New Password</label>
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block ml-1 group-focus-within:text-gray-900 transition-colors">New Password</label>
                                     <div className="relative">
                                         <input
                                             type="password" required minLength="8" value={resetPasswordForm.password}
                                             onChange={(e) => setResetPasswordForm({ password: e.target.value })}
                                             placeholder="Enter new password..."
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-[11px] font-bold text-gray-900 uppercase placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow/10 focus:border-brand-yellow transition-all"
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-[11px] font-bold text-gray-900 uppercase placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-200 transition-all"
                                         />
-                                        <Key className="absolute right-5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300 group-focus-within:text-brand-yellow transition-colors" />
+                                        <Key className="absolute right-5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300 group-focus-within:text-gray-900 transition-colors" />
                                     </div>
                                 </div>
 
@@ -567,7 +567,7 @@ const UserManagement = () => {
                                     type="submit" disabled={resetLoading}
                                     className="w-full py-4 bg-gray-900 text-brand-yellow rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-lg border border-gray-800 disabled:opacity-50 flex items-center justify-center gap-2 group"
                                 >
-                                    {resetLoading ? <div className="w-3.5 h-3.5 border-2 border-brand-yellow border-t-transparent rounded-full animate-spin" /> : <><ShieldAlert className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-red-500" /> Reset Password</>}
+                                    {resetLoading ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><ShieldAlert className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-red-500" /> Reset Password</>}
                                 </button>
                             </form>
                         </motion.div>

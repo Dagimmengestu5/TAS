@@ -21,6 +21,7 @@ class InterviewController extends Controller
             'type' => 'required|string',
             'scheduled_at' => 'required|date',
             'location' => 'nullable|string',
+            'address_link' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
@@ -31,7 +32,11 @@ class InterviewController extends Controller
         
         $application = $interview->application;
         $scheduledAtStr = \Carbon\Carbon::parse($interview->scheduled_at)->format('F j, Y, g:i a');
-        $feedback = "Interview scheduled for {$scheduledAtStr} at {$request->location}. Notes: {$request->notes}";
+        $addressInfo = $request->location;
+        if ($request->address_link) {
+            $addressInfo .= " ({$request->address_link})";
+        }
+        $feedback = "Interview scheduled for {$scheduledAtStr} at {$addressInfo}. Notes: {$request->notes}";
 
         // Update application status to match the interview node
         $newStatus = str_contains(strtolower($request->type), '2') ? 'interview_2' : 'interview_1';

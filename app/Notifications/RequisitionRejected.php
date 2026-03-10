@@ -39,6 +39,9 @@ class RequisitionRejected extends Notification
             ->subject('Update on Your Requisition: ' . $this->requisition->title)
             ->greeting('Hello ' . $notifiable->name . ',')
             ->line('Your hiring requisition for the ' . $this->requisition->title . ' position has been rejected.')
+            ->when($this->requisition->reject_comment, function ($mail) {
+                return $mail->line('**Rejection Feedback:** ' . $this->requisition->reject_comment);
+            })
             ->line('Please review the status and feedback in your Manager Hub to address any requirements or concerns.')
             ->action('View Requisition Status', config('app.frontend_url') . '/manager/request')
             ->line('The process for this specific request has been suspended.')
@@ -56,7 +59,9 @@ class RequisitionRejected extends Notification
             'requisition_id' => $this->requisition->id,
             'title' => $this->requisition->title,
             'status' => 'rejected',
-            'message' => 'Hiring requisition has been rejected.'
+            'type' => 'rejection',
+            'reject_comment' => $this->requisition->reject_comment,
+            'message' => 'Hiring requisition has been rejected.' . ($this->requisition->reject_comment ? ' Feedback: ' . $this->requisition->reject_comment : '')
         ];
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Clock, Filter, Briefcase, ChevronRight, CheckCircle, Users, Mail, ArrowRight, Zap, Globe, Shield, Building2, X, Star, Cpu, Activity, LogOut, Linkedin, Twitter, Facebook, Phone, GraduationCap, Award, LayoutGrid } from 'lucide-react';
+import { Search, MapPin, Clock, Filter, Briefcase, ChevronRight, CheckCircle, Users, Mail, ArrowRight, Zap, Globe, Shield, Building2, X, Star, Cpu, Activity, LogOut, Linkedin, Twitter, Facebook, Phone, GraduationCap, Award, LayoutGrid, User, Key } from 'lucide-react';
 import api from '../api/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -22,7 +22,7 @@ const staggerContainer = {
 };
 
 const LandingPage = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -59,6 +59,13 @@ const LandingPage = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, typeFilter, tagFilter, locationFilter, dateFilter, educationFilter, experienceFilter]);
+
+    // Handle pagination scroll-to-top
+    useEffect(() => {
+        if (!loading) {
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+        }
+    }, [currentPage, loading]);
 
     const filteredJobs = jobs.filter(job => {
         const req = job?.requisition || {};
@@ -126,7 +133,7 @@ const LandingPage = () => {
                 { name: "Droga Pharmacy", href: "https://drogapharmacy.com/" },
                 { name: "Droga Consulting", href: "https://drogaconsulting.com/" },
                 { name: "Ema Ethiopia", href: "https://www.emaethiopia.com/" },
-                { name: "Trust", href: "https://www.trustethiopharma.com/" },
+                { name: "Trust Pharma", href: "https://www.trustethiopharma.com/" },
                 { name: "Droga Physiotherapy", href: "https://www.drogaphysiotherapy.com/" }
             ]
         }
@@ -134,7 +141,7 @@ const LandingPage = () => {
 
     const contactInfo = [
         { icon: Mail, text: "info@drogapharma.com" },
-        { icon: Phone, text: "+251 11 661 0733" },
+        { icon: Phone, text: "+251 11 273 4554" },
         { icon: MapPin, text: "HQ Node, Addis Ababa, Ethiopia" }
     ];
 
@@ -155,21 +162,55 @@ const LandingPage = () => {
                             <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-brand-yellow font-bold text-xl group-hover:scale-105 transition-transform">D</div>
                             <div className="flex flex-col">
                                 <span className="text-lg font-bold tracking-tight text-gray-900 leading-none uppercase ">Droga Group Hub</span>
-                                <span className="text-[8px] font-bold text-brand-yellow uppercase tracking-wider leading-tight mt-1">Talent Ecosystem</span>
+                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider leading-tight mt-1">Talent Ecosystem</span>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-6">
                             {user ? (
-                                <Link to="/profile" className="flex items-center gap-4 bg-gray-50 px-6 py-2.5 rounded-2xl border border-gray-100 hover:border-brand-yellow transition-all shadow-sm group">
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-900">{(user?.name || 'User').split(' ')[0]}</span>
-                                        <span className="text-[8px] font-bold text-gray-400 capitalize ">Access Granted</span>
+                                <div className="relative group/usermenu flex items-center">
+                                    <button className="flex items-center bg-gray-50 p-1.5 rounded-2xl border border-gray-100 hover:border-brand-yellow transition-all shadow-sm group">
+                                        <div className="w-10 h-10 bg-gray-900 text-brand-yellow rounded-xl flex items-center justify-center font-bold text-sm uppercase shadow-lg group-hover:scale-110 transition-transform">
+                                            {(user?.name || 'U').charAt(0)}
+                                        </div>
+                                    </button>
+
+                                    {/* Dropdown */}
+                                    <div className="absolute top-[110%] right-0 w-60 bg-white rounded-[1.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-gray-100 opacity-0 invisible translate-y-2 group-hover/usermenu:opacity-100 group-hover/usermenu:visible group-hover/usermenu:translate-y-0 transition-all duration-300 overflow-hidden z-[100]">
+                                        <div className="p-5 bg-gray-50/50 border-b border-gray-100">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Signed in as</p>
+                                            <h4 className="text-sm font-black text-gray-900 truncate">{user?.name}</h4>
+                                            <p className="text-[9px] font-bold text-gray-400 truncate">{user?.email}</p>
+                                        </div>
+                                        <div className="p-2">
+                                            <Link
+                                                to="/profile?tab=profile"
+                                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold text-gray-500 hover:bg-gray-900 hover:text-white transition-all"
+                                            >
+                                                <User className="w-4 h-4" /> My Profile
+                                            </Link>
+                                            <Link
+                                                to="/profile?tab=applications"
+                                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold text-gray-500 hover:bg-gray-900 hover:text-white transition-all"
+                                            >
+                                                <Activity className="w-4 h-4" /> My Applications
+                                            </Link>
+                                            <Link
+                                                to="/profile?action=reset_password"
+                                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold text-gray-500 hover:bg-gray-900 hover:text-white transition-all"
+                                            >
+                                                <Key className="w-4 h-4" /> Reset Password
+                                            </Link>
+                                            <div className="h-px bg-gray-100 my-1 mx-3"></div>
+                                            <button
+                                                onClick={() => { navigate('/'); setTimeout(() => logout(), 0); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                            >
+                                                <LogOut className="w-4 h-4" /> Logout
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="w-10 h-10 bg-gray-900 text-brand-yellow rounded-xl flex items-center justify-center font-bold text-sm uppercase shadow-lg group-hover:scale-110 transition-transform">
-                                        {(user?.name || 'U').charAt(0)}
-                                    </div>
-                                </Link>
+                                </div>
                             ) : (
                                 <div className="flex items-center gap-4">
                                     <Link to="/login" className="text-[9px] font-bold text-gray-400 hover:text-gray-900 tracking-wider uppercase transition-colors px-4">Sign In</Link>
@@ -191,11 +232,13 @@ const LandingPage = () => {
                     className="absolute inset-0 z-0"
                 >
                     <img
-                        src="file:///C:/Users/D/.gemini/antigravity/brain/312f6030-f033-456a-8423-10aeeb536397/landing_hero_modern_1772264981067.png"
+                        src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
                         alt="Hero background"
-                        className="w-full h-full object-cover opacity-10"
+                        className="w-full h-full object-cover opacity-15"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white"></div>
+                    {/* Yellow tint overlay - exact #fff000 */}
+                    <div className="absolute inset-0" style={{ backgroundColor: 'rgba(255, 240, 0, 0.08)' }}></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/30 to-white"></div>
                 </motion.div>
 
                 <motion.div
@@ -219,7 +262,7 @@ const LandingPage = () => {
                             className="text-5xl md:text-8xl font-bold  mb-8 leading-[0.9] text-gray-900 max-w-5xl uppercase "
                         >
                             Find Your Next <br />
-                            <span className="relative inline-block text-brand-yellow ">
+                            <span className="relative inline-block text-gray-900 ">
                                 Chapter
                                 <motion.div
                                     initial={{ width: 0 }}
@@ -387,6 +430,7 @@ const LandingPage = () => {
                 ) : (
                     <>
                         <motion.div
+                            key={currentPage}
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
@@ -398,8 +442,8 @@ const LandingPage = () => {
                                     key={job.id}
                                     layout
                                     variants={fadeInUp}
-                                    whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                                    className="group bg-white rounded-2xl border border-gray-100 p-8 flex flex-col shadow-sm hover:shadow-md hover:border-brand-yellow/30 transition-all duration-500 relative overflow-hidden"
+                                    whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                                    className="group bg-white rounded-2xl border border-gray-100 p-8 flex flex-col shadow-sm hover:shadow-2xl hover:bg-gray-900 hover:border-transparent transition-all duration-500 relative overflow-hidden"
                                 >
                                     <div className="absolute top-0 right-0 w-24 h-24 bg-brand-yellow/5 rounded-bl-[3rem] -mr-8 -mt-8 group-hover:scale-150 transition-transform duration-700"></div>
 
@@ -407,7 +451,7 @@ const LandingPage = () => {
                                         <div className="bg-gray-50 p-3 rounded-xl group-hover:bg-brand-yellow/10 transition-colors duration-500">
                                             <Briefcase className="w-6 h-6 text-gray-400 group-hover:text-brand-yellow" />
                                         </div>
-                                        <div className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-wider  ${job.is_internal ? 'bg-brand-yellow/10 text-brand-yellow' : 'bg-gray-900 text-brand-yellow'}`}>
+                                        <div className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-wider  ${job.is_internal ? 'bg-brand-yellow group-hover:bg-brand-yellow text-black' : 'bg-gray-900 group-hover:bg-brand-yellow text-brand-yellow group-hover:text-black border border-brand-yellow/20'}`}>
                                             {job.is_internal ? 'Internal' : 'External'}
                                         </div>
                                     </div>
@@ -417,37 +461,37 @@ const LandingPage = () => {
                                     {job?.tags && (
                                         <div className="flex flex-wrap gap-1.5 mb-4">
                                             {job.tags.split(',').map((tag, i) => (
-                                                <span key={i} className="px-2 py-0.5 bg-gray-50 text-[7px] font-bold text-gray-400 uppercase tracking-wider  rounded-md border border-gray-100 group-hover:border-brand-yellow/30 transition-colors">
+                                                <span key={i} className="px-2 py-0.5 bg-gray-50 text-[7px] font-bold text-gray-400 uppercase tracking-wider  rounded-md border border-gray-100 group-hover:bg-white/5 group-hover:text-gray-300 group-hover:border-white/10 transition-colors">
                                                     #{tag.trim()}
                                                 </span>
                                             ))}
                                         </div>
                                     )}
 
-                                    <p className="text-[9.5px] text-gray-400 font-medium mb-8 line-clamp-3 uppercase tracking-wider leading-relaxed  flex-grow">
+                                    <p className="text-[9.5px] text-gray-400 font-medium mb-8 line-clamp-3 uppercase tracking-wider leading-relaxed  flex-grow group-hover:text-gray-300">
                                         {job?.requisition?.description || 'Build the future of organizational excellence in our growing ecosystem.'}
                                     </p>
 
-                                    <div className="flex flex-wrap items-center gap-4 text-gray-400 text-[8.5px] font-bold uppercase tracking-wider mb-4 pb-4 border-b border-gray-50 ">
-                                        <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-brand-yellow" /> {job?.location || job?.requisition?.location || job?.requisition?.department?.name}</div>
-                                        <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-brand-yellow" /> {job?.employment_type || (job.is_internal ? 'Internal' : 'Full-time')}</div>
+                                    <div className="flex flex-wrap items-center gap-4 text-gray-400 text-[8.5px] font-bold uppercase tracking-wider mb-4 pb-4 border-b border-gray-50 group-hover:border-white/5">
+                                        <div className="flex items-center gap-2 group-hover:text-gray-300"><MapPin className="w-3.5 h-3.5 text-brand-yellow" /> {job?.location || job?.requisition?.location || job?.requisition?.department?.name}</div>
+                                        <div className="flex items-center gap-2 group-hover:text-gray-300"><Clock className="w-3.5 h-3.5 text-brand-yellow" /> {job?.employment_type || (job.is_internal ? 'Internal' : 'Full-time')}</div>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-4 text-gray-400 text-[8.5px] font-bold uppercase tracking-wider mb-8">
-                                        {job?.education_level && <div className="flex items-center gap-2"><GraduationCap className="w-3.5 h-3.5 text-brand-yellow" /> {job.education_level}</div>}
-                                        {job?.experience_level && <div className="flex items-center gap-2"><Award className="w-3.5 h-3.5 text-brand-yellow" /> {job.experience_level}</div>}
+                                        {job?.education_level && <div className="flex items-center gap-2 group-hover:text-gray-300"><GraduationCap className="w-3.5 h-3.5 text-brand-yellow" /> {job.education_level}</div>}
+                                        {job?.experience_level && <div className="flex items-center gap-2 group-hover:text-gray-300"><Award className="w-3.5 h-3.5 text-brand-yellow" /> {job.experience_level}</div>}
                                     </div>
 
                                     <div className="flex gap-3 mt-auto">
                                         <Link
                                             to={`/jobs/${job.id}`}
-                                            className="flex-1 flex justify-center items-center py-3.5 px-6 bg-gray-50 text-gray-400 rounded-xl hover:bg-gray-100 transition-all font-bold text-[8px] uppercase tracking-wider border border-gray-100 "
+                                            className="flex-1 flex justify-center items-center py-3.5 px-6 bg-gray-50 text-gray-400 rounded-xl hover:bg-gray-100 group-hover:bg-white/5 group-hover:text-brand-yellow group-hover:border-white/10 transition-all font-bold text-[8px] uppercase tracking-wider border border-gray-100 "
                                         >
                                             Details
                                         </Link>
                                         <Link
                                             to={`/jobs/${job.id}?apply=true`}
-                                            className="flex-[2] flex justify-between items-center py-3.5 px-6 bg-gray-900 text-brand-yellow rounded-xl group-hover:bg-black hover:scale-[1.02] transition-all font-bold text-[8.5px] uppercase tracking-wider shadow-lg shadow-black/10 "
+                                            className="flex-[2] flex justify-between items-center py-3.5 px-6 bg-gray-900 text-brand-yellow rounded-xl group-hover:bg-brand-yellow group-hover:text-black hover:scale-[1.02] transition-all font-bold text-[8.5px] uppercase tracking-wider shadow-lg shadow-black/10 "
                                         >
                                             Join Now <ArrowRight className="w-4 h-4" />
                                         </Link>
@@ -521,7 +565,7 @@ const LandingPage = () => {
                     whileInView="visible"
                     viewport={{ once: true, margin: "-100px" }}
                     variants={staggerContainer}
-                    className="relative bg-[#0a0a0b] py-12 overflow-hidden border-t border-white/5"
+                    className="relative bg-[#0a0a0b] py-16 overflow-hidden border-t border-white/5"
                 >
                     {/* Background Visual Engineering */}
                     <div className="absolute top-0 left-0 right-0 h-1 px-8 lg:px-24">
@@ -577,9 +621,9 @@ const LandingPage = () => {
                                     <motion.div key={idx} variants={fadeInUp} className="space-y-6">
                                         <div className="flex items-center gap-2.5">
                                             <div className="w-1 h-3.5 bg-brand-yellow"></div>
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">{section.title}</h4>
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white">{section.title}</h4>
                                         </div>
-                                        <ul className="space-y-3">
+                                        <ul className="space-y-4">
                                             {section.links.map((link, lIdx) => (
                                                 <li key={lIdx}>
                                                     <a
@@ -599,45 +643,38 @@ const LandingPage = () => {
                             </div>
 
                             {/* Direct Access Hub */}
-                            <motion.div variants={fadeInUp} className="xl:col-span-4 space-y-6">
-                                <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5 backdrop-blur-xl relative group">
-                                    <div className="absolute inset-0 bg-brand-yellow/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2rem]"></div>
-                                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-yellow mb-6 pb-3 border-b border-white/10">Access Points</h4>
+                            <motion.div variants={fadeInUp} className="xl:col-span-4 h-full">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5 backdrop-blur-xl relative group h-full flex flex-col">
+                                    <div className="absolute inset-0 bg-brand-yellow/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                                    <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-yellow mb-5 pb-2 border-b border-white/10 uppercase">Access Points</h4>
 
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
                                         {contactInfo.map((info, i) => (
-                                            <div key={i} className="flex items-center gap-4 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-brand-yellow/20 transition-all group/info cursor-default shadow-sm">
-                                                <div className="w-8 h-8 rounded-lg bg-brand-yellow/10 flex items-center justify-center group-hover/info:scale-110 transition-transform">
-                                                    <info.icon className="w-4 h-4 text-brand-yellow group-hover/info:drop-shadow-[0_0_8px_rgba(255,242,0,0.5)]" />
+                                            <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-brand-yellow/20 transition-all group/info cursor-default">
+                                                <div className="w-7 h-7 rounded-md bg-brand-yellow/10 flex items-center justify-center group-hover/info:scale-110 transition-transform shrink-0">
+                                                    <info.icon className="w-3.5 h-3.5 text-brand-yellow" />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[11px] font-bold text-gray-300 group-hover/info:text-white transition-colors">{info.text}</span>
+                                                    <span className="text-[10px] font-bold text-gray-300 group-hover/info:text-white transition-colors">{info.text}</span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <button className="w-full mt-6 py-4 bg-brand-yellow text-black rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(255,242,0,0.1)] active:scale-95">
-                                        System Portal <ArrowRight className="w-4 h-4" />
+                                    <button className="w-full mt-5 py-3.5 bg-brand-yellow text-black rounded-xl font-black text-[9px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white transition-all shadow-[0_10px_20px_rgba(255,242,0,0.1)] active:scale-95">
+                                        System Portal <ArrowRight className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </motion.div>
                         </div>
 
                         {/* Terminal Utility Bar */}
-                        <motion.div variants={fadeInUp} className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <motion.div variants={fadeInUp} className="mt-8 pt-4 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="flex flex-col md:flex-row items-center gap-6 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
-                                    <div className="w-1 h-1 rounded-full bg-brand-yellow animate-pulse"></div>
-                                    <span>Core v3.2.0 • Online</span>
-                                </div>
+
                                 <p>© {currentYear} Droga Group Hub • All Assets Synchronized</p>
                             </div>
 
-                            <div className="flex items-center gap-8">
-                                <a href="#" className="text-gray-500 hover:text-white text-[9px] font-black uppercase tracking-widest transition-colors pb-1 border-b border-transparent hover:border-brand-yellow">Security</a>
-                                <a href="#" className="text-gray-500 hover:text-white text-[9px] font-black uppercase tracking-widest transition-colors pb-1 border-b border-transparent hover:border-brand-yellow">Privacy</a>
-                            </div>
                         </motion.div>
                     </div>
                 </motion.footer>

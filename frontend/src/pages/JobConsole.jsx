@@ -188,7 +188,7 @@ const JobConsole = () => {
 
     const getStatusStyle = (status) => {
         switch (status) {
-            case 'posted': return 'bg-brand-yellow/10 text-brand-yellow border-brand-yellow/20';
+            case 'posted': return 'bg-brand-yellow/10 text-gray-900 border-brand-yellow/20';
             case 'created': return 'bg-gray-100 text-gray-500 border-gray-200';
             case 'closed': return 'bg-red-50 text-red-500 border-red-100';
             default: return 'bg-gray-50 text-gray-400';
@@ -240,9 +240,9 @@ const JobConsole = () => {
                             <motion.button
                                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                                 onClick={() => { resetForm(); setView('form'); }}
-                                className="bg-gray-900 text-brand-yellow px-8 py-3.5 rounded-xl font-bold text-[10px] uppercase tracking-wider  flex items-center gap-2 shadow-xl shadow-brand-yellow/10 border border-gray-800"
+                                className="bg-gray-900 text-white px-8 py-3.5 rounded-xl font-bold text-[10px] uppercase tracking-wider  flex items-center gap-2 shadow-xl shadow-gray-900/10 border border-gray-800"
                             >
-                                <Plus className="w-4 h-4" /> New Job
+                                <Plus className="w-4 h-4 text-brand-yellow" /> New Job
                             </motion.button>
                         </div>
                     ) : (
@@ -270,7 +270,7 @@ const JobConsole = () => {
                                     key={status}
                                     onClick={() => setStatusFilter(status)}
                                     className={`px-6 py-2.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider  transition-all border ${statusFilter === status
-                                        ? 'bg-gray-900 text-brand-yellow border-gray-900 shadow-md'
+                                        ? 'bg-gray-900 text-white border-gray-900 shadow-md'
                                         : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'
                                         }`}
                                 >
@@ -298,7 +298,7 @@ const JobConsole = () => {
                                         </div>
 
                                         <div className="flex-1">
-                                            <h3 className="text-xl font-bold text-gray-900 uppercase   leading-tight mb-3 group-hover:text-brand-yellow transition-colors ">
+                                            <h3 className="text-xl font-bold text-gray-900 uppercase   leading-tight mb-3 group-hover:text-black transition-colors ">
                                                 {job.title}
                                             </h3>
                                             <div className="flex flex-wrap gap-2 mb-6">
@@ -345,7 +345,7 @@ const JobConsole = () => {
                                 {/* Job Heading */}
                                 <div className="p-6 bg-gray-900 rounded-2xl text-white shadow-lg relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 w-24 h-24 bg-brand-yellow/10 blur-[40px] rounded-full transition-all group-hover:scale-110"></div>
-                                    <h2 className="text-[10px] font-bold uppercase tracking-wider text-brand-yellow  mb-1 ">Job Details</h2>
+                                    <h2 className="text-[10px] font-bold uppercase tracking-wider text-white  mb-1 ">Job Details</h2>
                                     <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-relaxed">{editingId ? 'Edit existing job' : 'Create new job posting'}</p>
                                 </div>
 
@@ -389,17 +389,18 @@ const JobConsole = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Location Vector</label>
+                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Location Vector <span className="text-red-500">*</span></label>
                                         <input
-                                            type="text" value={formData.location}
+                                            type="text" required value={formData.location}
                                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                             className="w-full bg-gray-50 border border-gray-100 rounded-xl px-8 py-4 text-[11px] font-bold focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow outline-none transition-all "
                                             placeholder="Remote / City"
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Job Type (Modality)</label>
+                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Job Type (Modality) <span className="text-red-500">*</span></label>
                                         <select
+                                            required
                                             value={formData.employment_type}
                                             onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
                                             className="w-full bg-gray-50 border border-gray-100 rounded-xl px-8 py-4 text-[11px] font-bold focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow outline-none transition-all  appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px_10px] bg-[right_1.5rem_center] bg-no-repeat"
@@ -413,8 +414,9 @@ const JobConsole = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Job Category</label>
+                                        <label className="text-[9px] font-bold text-gray-900 uppercase tracking-wider block  px-4">Job Category <span className="text-red-500">*</span></label>
                                         <select
+                                            required
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                             className="w-full bg-gray-50 border border-gray-100 rounded-xl px-8 py-4 text-[11px] font-bold focus:ring-4 focus:ring-brand-yellow/5 focus:border-brand-yellow outline-none transition-all  appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px_10px] bg-[right_1.5rem_center] bg-no-repeat"
@@ -462,7 +464,7 @@ const JobConsole = () => {
                                                         setFormData({ ...formData, education_level: next });
                                                     }}
                                                     className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border ${formData.education_level.includes(level)
-                                                        ? 'bg-gray-900 text-brand-yellow border-gray-900 shadow-lg scale-105'
+                                                        ? 'bg-gray-900 text-white border-gray-900 shadow-lg scale-105'
                                                         : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-gray-300'
                                                         }`}
                                                 >
@@ -489,7 +491,7 @@ const JobConsole = () => {
                                                         setFormData({ ...formData, experience_level: next });
                                                     }}
                                                     className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border ${formData.experience_level.includes(level)
-                                                        ? 'bg-gray-900 text-brand-yellow border-gray-900 shadow-lg scale-105'
+                                                        ? 'bg-gray-900 text-white border-gray-900 shadow-lg scale-105'
                                                         : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-gray-300'
                                                         }`}
                                                 >
@@ -539,7 +541,7 @@ const JobConsole = () => {
                                             <select
                                                 value={formData.status}
                                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-8 py-5 text-xs font-bold focus:ring-4 focus:ring-brand-yellow/10 outline-none transition-all  uppercase"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-8 py-5 text-xs font-bold focus:ring-4 focus:ring-brand-yellow/10 outline-none transition-all  uppercase text-gray-900"
                                             >
                                                 <option value="created">Draft</option>
                                                 <option value="posted">Live</option>
@@ -548,9 +550,9 @@ const JobConsole = () => {
                                         </div>
 
                                         <div className="space-y-5">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block ">Application Deadline</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block ">Application Deadline <span className="text-red-500">*</span></label>
                                             <input
-                                                type="date" value={formData.deadline}
+                                                type="date" required value={formData.deadline}
                                                 onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                                                 className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-8 py-5 text-xs font-bold focus:ring-4 focus:ring-brand-yellow/10 outline-none transition-all  text-gray-900 uppercase"
                                             />
@@ -570,10 +572,10 @@ const JobConsole = () => {
 
                                     <button
                                         type="submit" disabled={submitting || success}
-                                        className="w-full bg-gray-900 text-brand-yellow py-6 rounded-xl font-bold text-[10px] uppercase tracking-wider  hover:bg-brand-yellow hover:text-gray-900 transition-all flex items-center justify-center gap-3 disabled:opacity-50 active:scale-[0.97] shadow-xl shadow-gray-900/10"
+                                        className="w-full bg-gray-900 text-white py-6 rounded-xl font-bold text-[10px] uppercase tracking-wider  hover:bg-brand-yellow hover:text-gray-900 transition-all flex items-center justify-center gap-3 disabled:opacity-50 active:scale-[0.97] shadow-xl shadow-gray-900/10"
                                     >
                                         {submitting ? 'Saving...' : success ? 'Success!' : editingId ? 'Update Job' : 'Create Job'}
-                                        {success ? <CheckCircle className="w-4 h-4" /> : <Send className="w-4 h-4 rotate-45" />}
+                                        {success ? <CheckCircle className="w-4 h-4 text-brand-yellow" /> : <Send className="w-4 h-4 rotate-45 text-brand-yellow" />}
                                     </button>
 
                                     {error && (

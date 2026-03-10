@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobRequisition extends Model
 {
-    protected $fillable = ['title', 'description', 'department_id', 'company_id', 'budget_status', 'status', 'user_id', 'jd_path', 'category', 'location', 'employment_type'];
+    protected $fillable = ['title', 'description', 'department_id', 'company_id', 'budget_status', 'status', 'user_id', 'jd_path', 'category', 'location', 'employment_type', 'reject_comment'];
 
     public function company()
     {
